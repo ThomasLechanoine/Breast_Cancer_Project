@@ -2,9 +2,17 @@ import streamlit as st
 import requests
 from PIL import Image
 import io
-
+import tensorflow as tf
 # Configuration de la page
 st.set_page_config(page_title="Application de Détection de Cancer", layout="wide")
+
+
+# Chargement du modèle de deep learning
+@st.cache_resource
+def load_dl_model():
+    return tf.keras.models.load_model("best_model.h5") #//////////
+
+model = load_dl_model()
 
 # Choix de la page
 page = st.sidebar.selectbox("Choisissez une page", ["Prédiction Cancer (ML)","Prédiction Mammographie"])
@@ -104,61 +112,44 @@ if page == "Prédiction Cancer (ML)":
         else:
             st.error("Erreur lors de la requête à l'API")
 
-
+#////////////////////////////////////////////////////////
 if page == "Prédiction Mammographie":
+    # Configuration de la page
     st.title("Prédiction de Cancer via Mammographie")
-
     st.write("Téléchargez une image de mammographie et appuyez sur **Prédiction** pour obtenir le résultat.")
 
     # ✅ Ajout d'un uploader pour charger une image
     uploaded_file = st.file_uploader("Téléchargez une image (PNG, JPG, JPEG)", type=["png", "jpg", "jpeg"])
 
+    API_URL = "http://127.0.0.1:8000/predict"  # Plus tard, il suffira de changer cette URL vers ton API cloud
+
     if uploaded_file is not None:
-        # Charger l'image avec PIL
+        # Load image
         image = Image.open(uploaded_file)
 
-        # ✅ Redimensionner l'image pour limiter sa taille (ex: 500px de large)
-        max_width = 500  # Définir la largeur maximale
-        w_percent = (max_width / float(image.size[0]))  # Calcul du ratio
-        new_height = int((float(image.size[1]) * float(w_percent)))  # Calcul de la nouvelle hauteur
+        # ✅ Resize image to fit in a smaller area (e.g., max width 500px)
+        max_width = 500  # Set maximum width
+        w_percent = max_width / float(image.size[0])
+        new_height = int(float(image.size[1]) * w_percent)  # Maintain aspect ratio
         image_resized = image.resize((max_width, new_height), Image.LANCZOS)
 
-        # ✅ Affichage de l'image redimensionnée
-        st.image(image_resized, caption="Image Originale (Redimensionnée)", use_container_width=True)
-
-        # ✅ Convertir l'image en bytes pour l'envoyer à l'API
-        img_bytes = io.BytesIO()
-        image.save(img_bytes, format="PNG")
-        img_bytes = img_bytes.getvalue()
+        # ✅ Display resized image
+        st.image(image_resized, caption="Image Redimensionnée", use_container_width=False)
 
         # ✅ Bouton de prédiction
         if st.button("Lancer la prédiction"):
-            api_url = "http://localhost:5000/predict_mammo"  # Modifier avec l'URL de ton API
+            # Convertir l'image en bytes pour l'envoyer à l'API
+            img_bytes = io.BytesIO()
+            image.save(img_bytes, format="PNG")
+            img_bytes = img_bytes.getvalue()
 
             # Envoi de l'image à l'API
             files = {"file": ("image.png", img_bytes, "image/png")}
-            response = requests.post(api_url, files=files)
+            response = requests.post(API_URL, files=files)
 
+            # Vérification de la réponse
             if response.status_code == 200:
-                # Récupération des images renvoyées par l'API
                 result = response.json()
-
-                # Charger les images reçues
-                original_image = Image.open(io.BytesIO(requests.get(result["original_image"]).content))
-                predicted_image = Image.open(io.BytesIO(requests.get(result["predicted_image"]).content))
-
-                # ✅ Redimensionner les images pour affichage
-                original_image_resized = original_image.resize((max_width, new_height), Image.LANCZOS)
-                predicted_image_resized = predicted_image.resize((max_width, new_height), Image.LANCZOS)
-
-                # ✅ Ajout d'un slider pour naviguer entre les deux images
-                image_choice = st.slider("Choisissez l'affichage", 1, 2, 1, format="Image %d")
-
-                # Afficher l'image sélectionnée
-                if image_choice == 1:
-                    st.image(original_image_resized, caption="Image Originale", use_container_width=True)
-                else:
-                    st.image(predicted_image_resized, caption="Résultat du modèle", use_container_width=True)
-
+                st.success(f"Résultat : {result['diagnostic']} ({result['probability']})")
             else:
                 st.error("Erreur lors de la requête à l'API.")

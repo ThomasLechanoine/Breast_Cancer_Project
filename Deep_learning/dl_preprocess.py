@@ -1,35 +1,41 @@
 # prep
 
-from google.colab import drive
-import zipfile
+# from google.colab import drive
+
+
 #////////////////////////////////
+import zipfile
+import os
+
 def download():
-    drive.mount('/content/drive')
+    """
+    Extrait un fichier ZIP contenant les données d'entraînement si nécessaire.
+    """
+    zip_path = "Data/Data_prepros.zip"  # Modifier avec le bon chemin
+    extract_path = "Data/Data_Deep_Learning"
 
-    zip_path = "/content/drive/MyDrive/Data_prepros.zip"  # Modifier avec votre chemin réel
-
-    #////////////////////////////////
-
-    # Définir le chemin du fichier ZIP et le dossier de destination
-    zip_path = "/content/drive/MyDrive/Data_prepros.zip"
-    extract_path = "/content/data"  # Dossier où extraire les fichiers
-
-    #////////////////////////////////
-    # Extraire le fichier ZIP
-    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-        zip_ref.extractall(extract_path)
-
-    print("Extraction terminée !")
-
-    #////////////////////////////////
-    folder_path = "/content/data/Data_prepros"
-
-
-    train_path = os.path.join(folder_path, "train")
-    valid_path = os.path.join(folder_path, "valid")
-    test_path = os.path.join(folder_path, "test")
+    # Vérifier si les données existent déjà
+    if not os.path.exists(extract_path):
+        print(f"Extraction des données depuis {zip_path}...")
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(extract_path)
+        print("✅ Extraction terminée !")
+    else:
+        print("✅ Les données existent déjà, extraction non nécessaire.")
 
 #////////////////////////////////////////////////////////////////
+
+import numpy as np
+from tensorflow.keras.preprocessing.image import load_img, img_to_array
+
+def preprocess_image(image_path):
+    """
+    Charge et prétraite une image pour le modèle de deep learning.
+    """
+    img = load_img(image_path, target_size=(224, 224))  # Taille adaptée au modèle
+    img_array = img_to_array(img) / 255.0  # Normalisation
+    img_array = np.expand_dims(img_array, axis=0)  # Ajouter une dimension batch
+    return img_array
 
 
 #////////////////////////////////////////////////////////////////
