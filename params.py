@@ -1,3 +1,5 @@
+import os  # Ajoute cette ligne en haut du fichier
+
 
 GCP_PROJECT = os.environ.get("breast-cancer-project-453509")
 GCP_REGION = os.environ.get("europe-west1-c")

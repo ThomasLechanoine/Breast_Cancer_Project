@@ -2,44 +2,44 @@ import numpy as np
 
 from tensorflow import keras
 from keras import Model, Sequential, layers, regularizers, optimizers
-from keras.callbacks import EarlyStopping
+# from keras.callbacks import EarlyStopping
 
-    #///////////initialize_model/////////////
-def initialize_model():
-    """
-    Initialize
-    """
-    #///CODE A AJOUTER///
+#///////////initialize_model/////////////
+# def ml_initialize_model():
+#     """
+#     Initialize
+#     """
+#     #///CODE A AJOUTER///
 
-    print("✅ Model initialized")
+#     print("✅ Model initialized")
 
-    return model
+#     return model
 
 #///////////compile_model/////////////
-def compile_model()
-    """
-    Compile the Neural Network
-    """
-    #///CODE A AJOUTER///
+# def ml_compile_model():
+#     """
+#     Compile the Neural Network
+#     """
+#     #///CODE A AJOUTER///
 
-    print("✅ Model compiled")
+#     print("✅ Model compiled")
 
-    return model
+#     return model
 
 #///////////train_model/////////////
-def train_model()
-    """
-    Fit the model and return a tuple (fitted_model, history)
-    """
-    #///CODE A AJOUTER///
+# def ml_train_model():
+#     """
+#     Fit the model and return a tuple (fitted_model, history)
+#     """
+#     #///CODE A AJOUTER///
 
-    return model, history
+#     return model, history
 
 #///////////evaluate_model/////////////
-def evaluate_model()
-    """
-    Evaluate trained model performance on the dataset
-    """
-    #///CODE A AJOUTER///
+# def ml_evaluate_model():
+#     """
+#     Evaluate trained model performance on the dataset
+#     """
+#     #///CODE A AJOUTER///
 
-    return metrics
+#     return metrics
