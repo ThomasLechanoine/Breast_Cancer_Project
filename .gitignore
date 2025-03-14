@@ -1,5 +1,7 @@
 Data
+
 sec
+
 venv/
 .env
 .envrc
