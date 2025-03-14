@@ -3,3 +3,6 @@ Data
 sec
 
 venv/
+.env
+.envrc
+docker/
