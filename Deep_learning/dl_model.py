@@ -3,7 +3,7 @@ import numpy as np
 from tensorflow import keras
 from keras import Model, Sequential, layers, regularizers, optimizers
 from keras.regularizers import l1_l2, l2
-from keras.preprocessing import image_dataset_from_directory
+# from keras.preprocessing import image_dataset_from_directory
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 
 #///////////initialize_model/////////////
@@ -40,8 +40,14 @@ def dl_compile_model(model, optimizer='adam', loss='binary_crossentropy', metric
 
 #///////////train_model/////////////
 def dl_train_model(model, train_dataset, validation_dataset, epochs=30):
+    model_dir = "Deep_learning/models_saved"
+    os.makedirs(model_dir, exist_ok=True)
+
     callbacks = [
-        ModelCheckpoint('best_model.h5', save_best_only=True, monitor='val_recall', mode='max'),
+        ModelCheckpoint(os.path.join(model_dir, 'best_model.h5'),
+                        save_best_only=True,
+                        monitor='val_recall',
+                        mode='max'),
         EarlyStopping(monitor='val_loss', patience=15, verbose=1, mode='min')
     ]
 

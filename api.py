@@ -10,11 +10,11 @@ from PIL import Image
 app = FastAPI()
 
 # Charger le modèle
-MODEL_PATH = "/home/bren/code/ThomasLechanoine/Breast_Cancer_Project/models_saved/best_model.h5"
+MODEL_PATH = "Deep_learning/models_saved/best_model.h5"
 
 print("Chargement du modèle de deep learning...")
 model = load_model(MODEL_PATH)
-print("✅ Modèle chargé avec succès.")
+print("Modèle chargé avec succès.")
 
 # Fonction de prétraitement de l'image
 def preprocess_image(image: Image.Image):
