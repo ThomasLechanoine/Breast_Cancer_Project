@@ -2,11 +2,29 @@
 # ////////////////////////// IMPORT //////////////////////////
 
 import numpy as np
-
-# from Deep_learning import ()
-# from Machine_learning import ()
-
 from params import *
+import joblib
+
+# // IMPORT ML///
+from Machine_learning.ml_preprocess import load_data, preprocess_data
+from Machine_learning.ml_model import create_model, tune_hyperparameters, evaluate_model
+
+# // IMPORT DL///
+import os
+import numpy as np
+import tensorflow as tf
+from Deep_learning.dl_model import dl_initialize_model, dl_compile_model, dl_train_model
+from Deep_learning.dl_preprocess import download  # Si besoin de télécharger et prétraiter les données
+
+#prediction DL
+import os
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras.preprocessing import image_dataset_from_directory
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing.image import load_img, img_to_array, array_to_img
+import matplotlib.pyplot as plt
+from Deep_learning.dl_preprocess import preprocess_image  # Importer la fonction de preprocessing
 
 # ///////////////////// VISUALISATIONS //////////////////////
 
@@ -17,23 +35,22 @@ from params import *
 fonctions for machine learning based on CSV
 """
 
-# def ml_preprocess_and_train()
+# Charger et prétraiter les données
+data = load_data("Data/Machine_learning.csv")  # Modifier avec le bon chemin
+X_train, X_test, y_train, y_test, scaler, le = preprocess_data(data)
 
-    # Preprocess data using ml_preprocess.py
+# Initialiser et optimiser le modèle
+model = create_model()
+best_model = tune_hyperparameters(X_train, y_train)
+
+# Évaluer le modèle
+evaluate_model(best_model, X_test, y_test)
 
 
 # ///////////////////// DEEP LEARNING ////////////////////
 """
 fonctions for deep learning based on CSV
 """
-
-# // IMPORT ///
-import os
-import numpy as np
-import tensorflow as tf
-from Deep_learning.dl_model import dl_initialize_model, dl_compile_model, dl_train_model
-from Deep_learning.dl_preprocess import download  # Si besoin de télécharger et prétraiter les données
-from tensorflow.keras.preprocessing import image_dataset_from_directory
 
 # /// PARAMÈTRES ///
 DATA_DIR = "Data/Data_Deep_Learning/"  # Modifier si le dossier des images est ailleurs
@@ -67,7 +84,6 @@ valid_dataset = image_dataset_from_directory(
     shuffle=True
 )
 
-
 # /// INITIALISATION DU MODÈLE ///
 print("Initialisation du modèle...")
 model = dl_initialize_model()
@@ -83,7 +99,8 @@ model, history = dl_train_model(model, train_dataset, valid_dataset, epochs=EPOC
 # // SAUVEGARDE DU MODÈLE //
 print("Sauvegarde du modèle entraîné...")
 # Définition du chemin de sauvegarde
-MODEL_SAVE_PATH = "/home/bren/code/ThomasLechanoine/Breast_Cancer_Project/models_saved/best_model.h5"
+MODEL_SAVE_PATH = "Deep_learning/models_saved/best_model.h5"
+os.makedirs(os.path.dirname(MODEL_SAVE_PATH), exist_ok=True)
 
 # Sauvegarde du modèle
 print(f"Sauvegarde du modèle dans {MODEL_SAVE_PATH} ...")
@@ -91,29 +108,39 @@ model.save(MODEL_SAVE_PATH)
 
 print(f"✅ Modèle sauvegardé avec succès dans {MODEL_SAVE_PATH} !")
 
-
 print("Entraînement terminé et modèle sauvegardé sous 'best_model.h5' !")
-
-
 
 
 # ///////////////////// PREDICTION_ML ////////////////////
 
-# def pred():
-#     model = load_model()
+def ml_predict(input_data):
+    """
+    Fonction pour faire une prédiction avec le modèle de Machine Learning.
+    """
+    # Charger le modèle ML et le scaler
+    model_path = "Machine_learning/models_saved/ml_best_model.pkl"
+    scaler_path = "Machine_learning/models_saved/ml_scaler.pkl"
 
-#     print(f"✅ pred() done")
 
-#     return
+    model = joblib.load(model_path)
+    scaler = joblib.load(scaler_path)
+
+    # Normaliser les données
+    input_data_scaled = scaler.transform([input_data])
+
+    # Faire la prédiction
+    prediction = model.predict(input_data_scaled)[0]
+    diagnostic = "Malin (Cancer)" if prediction == 1 else "Bénin (Sans Cancer)"
+
+    return diagnostic
+
+# Test de prédiction ML
+demo_data = X_test[0]  # Exemple avec un élément du jeu de test
+result = ml_predict(demo_data)
+print(f"Prédiction Machine Learning : {result}")
+
 
 # ///////////////////// PREDICTION_DL ////////////////////
-import os
-import numpy as np
-import tensorflow as tf
-from tensorflow.keras.models import load_model
-import matplotlib.pyplot as plt
-from tensorflow.keras.utils import array_to_img
-from Deep_learning.dl_preprocess import preprocess_image  # Importer la fonction de preprocessing
 
 MODEL_PATH = "/home/bren/code/ThomasLechanoine/Breast_Cancer_Project/models_saved/best_model.h5"
 
@@ -129,24 +156,6 @@ def load_trained_model():
     model = load_model(MODEL_PATH)
     print("✅ Modèle chargé avec succès.")
     return model
-
-# def predictImage(image_path):
-#     """
-#     Prend un chemin d'image et un modèle, et renvoie le résultat de la prédiction.
-#     """
-#     model = load_trained_model()
-#     img_array = preprocess_image(image_path)
-#     res = model.predict(img_array)[0][0]
-
-#     diagnostic = "Positif" if res >= 0.5 else "Négatif"
-#     prob = res if res >= 0.5 else 1 - res
-
-#     plt.imshow(array_to_img(img_array[0]))
-#     plt.axis("off")
-#     plt.title(f"{diagnostic} ({prob:.2%})")
-#     plt.show()
-
-#     return diagnostic, prob  # Retourne aussi les valeurs pour affichage dans Streamlit
 
 def predictImage(image_path, model):
     '''Takes an image and a model
