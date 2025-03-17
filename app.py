@@ -10,6 +10,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import confusion_matrix
+from params import *  # Importation des URLs API
 
 # Machine Learning Imports
 from Machine_learning.ml_preprocess import load_data, preprocess_data
@@ -19,10 +20,10 @@ from Machine_learning.ml_model import create_model, tune_hyperparameters, evalua
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "Machine_learning")))
 
 # ---------------------- CONFIGURATION ----------------------
-st.set_page_config(page_title="Application de Détection de Cancer", layout="wide")
+st.set_page_config(page_title="Application de Détection de Cancer du sein", layout="wide")
 
 # Image à afficher à gauche dans la sidebar
-image_path_left = os.path.join("/home", "bren", "code", "ThomasLechanoine", "Breast_Cancer_Project", "app_img", "01.png")
+image_path_left = os.path.join("/home", "bren", "code", "ThomasLechanoine", "Breast_Cancer_Project", "app_img", "01.png") #<------------------------------------------------
 image = Image.open(image_path_left)
 
 # Afficher l'image sur la barre latérale
@@ -55,7 +56,7 @@ if page == "Graphiques":
     st.write("Analyse des données avec des visualisations graphiques.")
 
     # Définition du répertoire contenant les graphiques
-    graph_dir = os.path.join("/home", "bren", "code", "ThomasLechanoine", "Breast_Cancer_Project", "app_img")
+    graph_dir = os.path.join("/home", "bren", "code", "ThomasLechanoine", "Breast_Cancer_Project", "app_img") #<------------------------------------------------
 
     # Liste des graphiques avec descriptions
     graph_data = [
@@ -72,11 +73,31 @@ if page == "Graphiques":
             st.image(img_path, use_column_width=True)
             st.write(graph["description"])
 
+# Ajout de style CSS pour rendre le contour du menu déroulant plus visible
+st.markdown("""
+    <style>
+        /* Style pour rendre le contour du menu déroulant plus visible */
+        div[data-testid="stExpander"] {
+            border: 2px solid #4A90E2 !important; /* Bleu vif */
+            border-radius: 10px !important;
+            background-color: #E3F2FD !important; /* Bleu pastel */
+            padding: 10px !important;
+        }
+
+        /* Style du titre dans l'expander */
+        div[data-testid="stExpander"] summary {
+            font-weight: bold !important;
+            font-size: 16px !important;
+            color: #1A1A1A !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 
 # ---------------------- LOAD MODELS DL---------------------
 @st.cache_resource
 def load_dl_model():
-    return tf.keras.models.load_model("Deep_learning/models_saved/best_model.h5")
+    return tf.keras.models.load_model(DL_MODEL_PATH)
  #//////////
 
 model = load_dl_model()
@@ -85,18 +106,18 @@ model = load_dl_model()
 # Load the trained model and scaler
 @st.cache_resource
 def load_model():
-    MODEL_PATH = "/home/bren/code/ThomasLechanoine/Breast_Cancer_Project/Machine_learning/models_saved/ml_best_model.pkl"
-    SCALER_PATH = "/home/bren/code/ThomasLechanoine/Breast_Cancer_Project/Machine_learning/models_saved/ml_scaler.pkl"
+    MODEL_PATH = ML_MODEL_PATH #<------------------------------------------------
+    SCALER_PATH = ML_SCALER_PATH #<------------------------------------------------
     model = joblib.load(MODEL_PATH)
     scaler = joblib.load(SCALER_PATH)
     return model, scaler
 
 model, scaler = load_model()
 
-# ---------------------- LOAD test data---------------------
+# ---------------------- LOAD test data--------------------- a voir si besoin
 @st.cache_resource
 def load_test_data():
-    dataset_path = os.path.join("/home", "bren", "code", "ThomasLechanoine", "Breast_Cancer_Project", "Data", "Machine_learning.csv")
+    dataset_path = ML_DATA_PATH #<------------------------------------------------
     data = pd.read_csv(dataset_path)
     X = data.drop(columns=["id", "diagnosis"])  # Drop unnecessary columns
     y = data["diagnosis"].map({"B": 0, "M": 1})  # Encode labels (B:0, M:1)
@@ -112,15 +133,34 @@ X_test, y_test = load_test_data()
 
 
 #//////////////////////Page de prediction DEEP LEARNING/////////////////////////////
+
 if page == "Prédiction Mammographie (DL)":
     # Configuration de la page
-    st.title("Prédiction de Cancer via Mammographie")
+    st.title("Prédiction de Cancer via Deep Learning")
+
+        # Ajout du sous-titre et explication du Deep Learning
+    st.subheader("Qu'est-ce que le Deep Learning ?")
+
+    with st.expander("Définition du Deep Learning (Expliqué simplement)"):
+        st.write("""
+        🔍 Le **Deep Learning** est une branche de l'intelligence artificielle.
+
+        🔍 Imagine un enfant qui apprend à reconnaître un chat en voyant beaucoup d'images de chats.
+            Le Deep Learning fait pareil !
+            Avec des **milliers d'exemples**, il devient de plus en plus fort pour **reconnaître** des objets, des visages, des animaux, etc.
+
+        🔍 **Exemple** : Un modèle de Deep Learning peut analyser une mammographie et dire si une tumeur est présente ou non.
+        """)
+
+    # Ajout d'un deuxième sous-titre avant l'input d'image
+    st.subheader("Analyse de mammographie")
+
     st.write("Téléchargez une image de mammographie et appuyez sur **Prédiction** pour obtenir le résultat.")
 
     # Ajout d'un uploader pour charger une image
     uploaded_file = st.file_uploader("Téléchargez une image (PNG, JPG, JPEG)", type=["png", "jpg", "jpeg"])
 
-    API_URL = "http://127.0.0.1:8000/predict"  # Plus tard, il suffira de changer cette URL vers ton API cloud
+    DL_API_URL = DL_API_URL  # Plus tard, il suffira de changer cette URL avec l' API cloud #<------------------------------------------------
 
     if uploaded_file is not None:
         # Load image
@@ -144,7 +184,7 @@ if page == "Prédiction Mammographie (DL)":
 
             # Envoi de l'image à l'API
             files = {"file": ("image.png", img_bytes, "image/png")}
-            response = requests.post(API_URL, files=files)
+            response = requests.post(DL_API_URL, files=files)
 
             # Vérification de la réponse
             if response.status_code == 200:
@@ -252,14 +292,17 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
+# ------------------- Machine Learning Prediction -------------------
+# URL de l'API pour la prédiction ML
+ML_API_URL = ML_API_URL  # !!! Remplacer cette URL si l'API est hébergée en ligne #<------------------------------------------------
 
 
 # ------------------- Machine Learning Prediction -------------------
 if page == "Prédiction Cancer (ML)":
     st.title("Prédiction de Cancer via Machine Learning")
-    st.write("Veuillez entrer les mesures de la tumeur pour obtenir une prédiction.")
 
-    # Default values for two sample predictions
+
+    #  Valeurs par défaut (corrigées)
     default_values_1 = {
         "radius_mean": 17.99, "texture_mean": 10.38, "perimeter_mean": 122.8, "area_mean": 1001.0,
         "smoothness_mean": 0.1184, "compactness_mean": 0.2776, "concavity_mean": 0.3001, "concave points_mean": 0.1471,
@@ -282,11 +325,29 @@ if page == "Prédiction Cancer (ML)":
         "symmetry_worst": 0.2346, "fractal_dimension_worst": 0.08025
     }
 
-    # Creating forms for two predictions
+    # ------------------- PRÉDICTION 1 -------------------
+
+
+    # Ajout du sous-titre et explication du Machine Learning
+    st.subheader("Qu'est-ce que le Machine Learning ?")
+
+    with st.expander("Définition du Machine Learning (Expliqué simplement)"):
+        st.write("""
+        🔍 **Le Machine Learning (ML)** est une branche de l'intelligence artificielle.
+
+        🎯 Plutôt que d’être **programmés manuellement** pour chaque tâche, les modèles de Machine Learning trouvent **eux-mêmes des paterns** dans les données.
+
+        🏥 **Exemple médical** : En analysant des **milliers de tumeurs**, un modèle peut **prédire** si une nouvelle tumeur est bénigne ou maligne, simplement en comparant ses caractéristiques avec celles de tumeurs déjà connues.
+        """)
+
+    # Ajout d'un deuxième sous-titre avant l'input des caractéristiques tumorales
+    st.subheader("Analyse des caractéristiques de la tumeur")
+    st.write("Veuillez entrer les mesures de la tumeur pour obtenir une prédiction.")
+
     st.subheader("Prédiction 1 (Maligne)")
     with st.form(key="prediction_form_1"):
         columns = st.columns(5)
-        feature_values_1 = {}  # Dictionnaire pour stocker les valeurs des features
+        feature_values_1 = {}
 
         for i, feature in enumerate(default_values_1.keys()):
             with columns[i % 5]:
@@ -296,35 +357,41 @@ if page == "Prédiction Cancer (ML)":
 
         submit_button_1 = st.form_submit_button(label="Lancer la Prédiction 1")
 
-    # Vérifier si submit_button_1 existe avant de l'utiliser
+
     if submit_button_1:
         input_data_1 = pd.DataFrame([list(feature_values_1.values())], columns=default_values_1.keys())
-        input_data_scaled_1 = scaler.transform(input_data_1)
-        prediction_1 = model.predict(input_data_scaled_1)[0]
 
-        # Choisir la couleur du résultat selon la prédiction
-        if prediction_1 == 1:
-            diagnostic_1 = "🔴 Malin (Cancer)"
-            color_1 = "#F76C6C"  # Rouge pastel pour cancer
+        if input_data_1.isnull().values.any():
+            st.error("⚠️ Certaines valeurs sont vides ou incorrectes ! Veuillez remplir tous les champs.")
         else:
-            diagnostic_1 = "🔵 Bénin (Sans Cancer)"
-            color_1 = "#A1C4FD"  # Bleu pastel pour bénin
+            input_data_json = {"features": input_data_1.values.tolist()[0]}
+            response = requests.post(ML_API_URL, json=input_data_json)
 
-        # Affichage du résultat avec une carte colorée
-        st.markdown(
-            f'<div style="background-color:{color_1}; padding:15px; border-radius:10px; text-align:center; font-size:16px; color:white; font-weight:bold;">'
-            f'Résultat de la prédiction 1 : {diagnostic_1}'
-            '</div>',
-            unsafe_allow_html=True
-        )
+            if response.status_code == 200:
+                prediction_1 = response.json()["diagnostic"]
+            else:
+                prediction_1 = "Erreur lors de la prédiction."
 
+            # **Mise en forme du résultat**
+            if "Malin" in prediction_1:
+                diagnostic_1 = "🔴 Malin (Cancer)"
+                color_1 = "#F76C6C"  # Rouge pastel
+            else:
+                diagnostic_1 = "🔵 Bénin (Sans Cancer)"
+                color_1 = "#A1C4FD"  # Bleu pastel
 
-    # ---------------------------------------------------------------------------
-
+            st.markdown(
+                f'<div style="background-color:{color_1}; padding:15px; border-radius:10px; text-align:center; '
+                f'font-size:16px; color:white; font-weight:bold;">'
+                f'Résultat de la prédiction 1 : {diagnostic_1}'
+                '</div>',
+                unsafe_allow_html=True
+            )
+    # ------------------- PRÉDICTION 2 -------------------
     st.subheader("Prédiction 2 (Bénigne)")
     with st.form(key="prediction_form_2"):
         columns = st.columns(5)
-        feature_values_2 = {}  # Nouveau dictionnaire pour la deuxième prédiction
+        feature_values_2 = {}
 
         for i, feature in enumerate(default_values_2.keys()):
             with columns[i % 5]:
@@ -334,28 +401,35 @@ if page == "Prédiction Cancer (ML)":
 
         submit_button_2 = st.form_submit_button(label="Lancer la Prédiction 2")
 
-    # Vérifier si submit_button_2 est défini avant de l'utiliser
     if submit_button_2:
         input_data_2 = pd.DataFrame([list(feature_values_2.values())], columns=default_values_2.keys())
-        input_data_scaled_2 = scaler.transform(input_data_2)
-        prediction_2 = model.predict(input_data_scaled_2)[0]
 
-        # Déterminer la couleur et l'affichage du diagnostic
-        if prediction_2 == 1:
-            diagnostic_2 = "🔴 Malin (Cancer)"
-            color_2 = "#F76C6C"  # Rouge pastel pour cancer
+        if input_data_2.isnull().values.any():
+            st.error("⚠️ Certaines valeurs sont vides ou incorrectes ! Veuillez remplir tous les champs.")
         else:
-            diagnostic_2 = "🔵 Bénin (Sans Cancer)"
-            color_2 = "#A1C4FD"  # Bleu pastel pour bénin
+            input_data_json = {"features": input_data_2.values.tolist()[0]}
+            response = requests.post(ML_API_URL, json=input_data_json)
 
-        # Affichage du résultat sous forme de carte colorée
-        st.markdown(
-            f'<div style="background-color:{color_2}; padding:15px; border-radius:10px; text-align:center; font-size:16px; color:white; font-weight:bold;">'
-            f'Résultat de la prédiction 2 : {diagnostic_2}'
-            '</div>',
-            unsafe_allow_html=True
-        )
+            if response.status_code == 200:
+                prediction_2 = response.json()["diagnostic"]
+            else:
+                prediction_2 = "Erreur lors de la prédiction."
 
+            #  **Mise en forme du résultat**
+            if "Malin" in prediction_2:
+                diagnostic_2 = "🔴 Malin (Cancer)"
+                color_2 = "#F76C6C"  # Rouge pastel
+            else:
+                diagnostic_2 = "🔵 Bénin (Sans Cancer)"
+                color_2 = "#A1C4FD"  # Bleu pastel
+
+            st.markdown(
+                f'<div style="background-color:{color_2}; padding:15px; border-radius:10px; text-align:center; '
+                f'font-size:16px; color:white; font-weight:bold;">'
+                f'Résultat de la prédiction 2 : {diagnostic_2}'
+                '</div>',
+                unsafe_allow_html=True
+            )
 
    #--------------------CONFUSION MATRIX------------------
     if submit_button_1 or submit_button_2:

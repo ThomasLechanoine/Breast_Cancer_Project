@@ -10,8 +10,8 @@ def download():
     """
     Extrait un fichier ZIP contenant les données d'entraînement si nécessaire.
     """
-    zip_path = "Data/Data_prepros.zip"  # Modifier avec le bon chemin
-    extract_path = "Data/Data_Deep_Learning"
+    zip_path = "Data/Data_prepros.zip"  # Modifier avec le bon chemin #<------------------------------------------------
+    extract_path = "Data/Data_Deep_Learning" #<------------------------------------------------
 
     # Vérifier si les données existent déjà
     if not os.path.exists(extract_path):

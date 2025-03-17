@@ -36,7 +36,7 @@ fonctions for machine learning based on CSV
 """
 
 # Charger et prétraiter les données
-data = load_data("Data/Machine_learning.csv")  # Modifier avec le bon chemin
+data = load_data(ML_DATA_PATH)  # Remplace l'ancien chemin en du
 X_train, X_test, y_train, y_test, scaler, le = preprocess_data(data)
 
 # Initialiser et optimiser le modèle
@@ -53,10 +53,12 @@ fonctions for deep learning based on CSV
 """
 
 # /// PARAMÈTRES ///
-DATA_DIR = "Data/Data_Deep_Learning/"  # Modifier si le dossier des images est ailleurs
-BATCH_SIZE = 32
-IMG_SIZE = (224, 224)
-EPOCHS = 30
+DATA_DIR = DL_DATA_PATH  # Utilisation du chemin défini dans params.py
+MODEL_SAVE_PATH = DL_MODEL_PATH
+MODEL_PATH = DL_MODEL_PATH
+BATCH_SIZE = DL_BATCH_SIZE
+IMG_SIZE = DL_IMG_SIZE
+EPOCHS = DL_EPOCHS
 
 # Vérifier si les données existent, sinon les télécharger
 if not os.path.exists(DATA_DIR):
@@ -90,7 +92,7 @@ model = dl_initialize_model()
 
 # /// COMPILATION DU MODÈLE ///
 print("Compilation du modèle...")
-model = dl_compile_model(model, optimizer='adam', loss='binary_crossentropy', metrics=['accuracy', 'recall'])
+model = dl_compile_model(model, optimizer=DL_OPTIMIZER, loss=DL_LOSS_FUNCTION, metrics=DL_METRICS)
 
 # /// ENTRAÎNEMENT DU MODÈLE ///
 print("Entraînement du modèle...")
@@ -99,7 +101,7 @@ model, history = dl_train_model(model, train_dataset, valid_dataset, epochs=EPOC
 # // SAUVEGARDE DU MODÈLE //
 print("Sauvegarde du modèle entraîné...")
 # Définition du chemin de sauvegarde
-MODEL_SAVE_PATH = "Deep_learning/models_saved/best_model.h5"
+MODEL_SAVE_PATH = DL_MODEL_PATH #<------------------------------------------------
 os.makedirs(os.path.dirname(MODEL_SAVE_PATH), exist_ok=True)
 
 # Sauvegarde du modèle
@@ -118,8 +120,8 @@ def ml_predict(input_data):
     Fonction pour faire une prédiction avec le modèle de Machine Learning.
     """
     # Charger le modèle ML et le scaler
-    model_path = "Machine_learning/models_saved/ml_best_model.pkl"
-    scaler_path = "Machine_learning/models_saved/ml_scaler.pkl"
+    model_path = ML_MODEL_PATH
+    scaler_path = ML_SCALER_PATH
 
 
     model = joblib.load(model_path)
@@ -142,7 +144,7 @@ print(f"Prédiction Machine Learning : {result}")
 
 # ///////////////////// PREDICTION_DL ////////////////////
 
-MODEL_PATH = "/home/bren/code/ThomasLechanoine/Breast_Cancer_Project/models_saved/best_model.h5"
+MODEL_PATH = DL_MODEL_PATH  #<------------------------------------------------
 
 
 def load_trained_model():
