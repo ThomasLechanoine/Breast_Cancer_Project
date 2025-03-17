@@ -6,9 +6,10 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from Machine_learning.ml_preprocess import load_data, preprocess_data
+from params import *
 
 # Détecter automatiquement le bon chemin du fichier CSV
-DATA_PATH = "/home/bren/code/ThomasLechanoine/Breast_Cancer_Project/Data/Machine_learning.csv"
+DATA_PATH = ML_DATA_PATH #<------------------------------------------------
 
 
 def create_model():
