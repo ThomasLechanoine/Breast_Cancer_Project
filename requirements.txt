@@ -12,3 +12,5 @@ scipy
 seaborn
 xgboost
 tensorflow
+fastapi
+uvicorn
