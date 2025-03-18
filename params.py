@@ -29,8 +29,8 @@ DL_LOSS_FUNCTION = 'binary_crossentropy'
 DL_METRICS = ['accuracy', 'recall']
 
 ##################  CONFIGURATION API  ##################
-DL_API_URL = "http://127.0.0.1:8000/predict"
-ML_API_URL = "http://127.0.0.1:8000/predict_ml"
+ML_API_URL = "http://127.0.0.1:8000/predict_ml"  # ✅ Corrigé
+DL_API_URL = "http://127.0.0.1:8000/predict_dl"
 
 
 ##################  PARAMÈTRES D'ENTRAÎNEMENT DU MODÈLE DL  ##################
