@@ -23,24 +23,33 @@ import matplotlib.pyplot as plt
 from Deep_learning.dl_preprocess import preprocess_image  # Importer la fonction de preprocessing
 
 # ///////////////////// VISUALISATIONS //////////////////////
+#a voir si supprimer : test
+# from fastapi import FastAPI
 
+# app = FastAPI()
 
+# @app.get("/")
+# def read_root():
+#     return {"message": "API is running"}
 
 # //////////////////// MACHINE LEARNING /////////////////////
 """
 fonctions for machine learning based on CSV
 """
 
-# Charger et prétraiter les données
-data = load_data(ML_DATA_PATH)
-X_train, X_test, y_train, y_test, scaler, le = preprocess_data(data)
+def train_ml_model():
+    """ Entraîne et sauvegarde le modèle ML """
+    print("Début de l'entraînement du modèle ML...")
+    data = load_data(ML_DATA_PATH)
+    X_train, X_test, y_train, y_test, scaler, le = preprocess_data(data)
 
-# Initialiser et optimiser le modèle
-model = create_model()
-best_model = tune_hyperparameters(X_train, y_train)
+    best_model = tune_hyperparameters(X_train, y_train)
 
-# Évaluer le modèle
-evaluate_model(best_model, X_test, y_test)
+    os.makedirs("models_saved", exist_ok=True)
+    joblib.dump(best_model, "models_saved/ml_best_model.pkl")
+    joblib.dump(scaler, "models_saved/ml_scaler.pkl")
+
+    print("✅ Modèle ML entraîné et sauvegardé !")
 
 
 # ///////////////////// DEEP LEARNING ////////////////////
@@ -177,3 +186,16 @@ def predictImage(image_path, model): #attention est ce que la fonction doit etre
     return  plt.show()
 
 # ///////////////////// END ////////////////////
+# Exécuter seulement si le script est lancé directement
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--train", choices=["ml", "dl", "all"], help="Lancer l'entraînement des modèles")
+    args = parser.parse_args()
+
+    if args.train == "ml":
+        train_ml_model()
+    elif args.train == "dl":
+        train_dl_model()
+    elif args.train == "all":
+        train_ml_model()
+        train_dl_model()
