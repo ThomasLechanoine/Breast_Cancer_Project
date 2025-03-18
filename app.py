@@ -116,11 +116,15 @@ model = load_dl_model()
 # Load the trained model and scaler
 @st.cache_resource
 def load_model():
-    MODEL_PATH = ML_MODEL_PATH #<------------------------------------------------
-    SCALER_PATH = ML_SCALER_PATH #<------------------------------------------------
-    model = joblib.load(MODEL_PATH)
-    scaler = joblib.load(SCALER_PATH)
-    return model, scaler
+    MODEL_PATH = ML_MODEL_PATH
+    SCALER_PATH = ML_SCALER_PATH
+    if os.path.exists(MODEL_PATH) and os.path.exists(SCALER_PATH):
+        model = joblib.load(MODEL_PATH)
+        scaler = joblib.load(SCALER_PATH)
+        return model, scaler
+    else:
+        st.error("❌ Modèle ML non trouvé. Entraînez-le avec `python main.py --train ml`.")
+        return None, None
 
 model, scaler = load_model()
 
@@ -157,14 +161,17 @@ if page == "Prédiction Mammographie (DL)":
 
         🔍 Imagine un enfant qui apprend à reconnaître un chat en voyant beaucoup d'images de chats.
             Le Deep Learning fait pareil !
-            Avec des **milliers d'exemples**, il devient de plus en plus fort pour **reconnaître** des objets, des visages, des animaux, etc.
+            Avec des **milliers d'exemples**, le model 'apprend' à **reconnaître** des objets, des visages, des animaux, etc.""")
 
-        🔍 **Exemple** : Un modèle de Deep Learning peut analyser une mammographie et dire si une tumeur est présente ou non.
-        """)
         # Ajout de l'image après la définition du Deep Learning
         choco_image_path = os.path.join("/home", "bren", "code", "ThomasLechanoine", "Breast_Cancer_Project", "app_img", "choco.jpg")
         if os.path.exists(choco_image_path):
             st.image(choco_image_path, caption="Illustration complémentaire", use_column_width=True)
+
+        st.write("""
+        Dans notre cas : Un modèle de Deep Learning peut analyser une mammographie et dire si une tumeur est présente ou non.
+        """)
+
 
     # Ajout d'un deuxième sous-titre avant l'input d'image
     st.subheader("Analyse de mammographie")

@@ -18,7 +18,7 @@ DL_MODEL_PATH = DL_MODEL_PATH #<------------------------------------------------
 
 print("Chargement du modèle de deep learning...")
 model = load_model(DL_MODEL_PATH)
-print("Modèle chargé avec succès.")
+print("✅ Modèle chargé avec succès.")
 
 # Fonction de prétraitement de l'image
 def preprocess_image(image: Image.Image):
