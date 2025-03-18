@@ -18,7 +18,7 @@ DL_MODEL_PATH = DL_MODEL_PATH #<------------------------------------------------
 
 print("Chargement du modèle de deep learning...")
 model = load_model(DL_MODEL_PATH)
-print("✅ Modèle chargé avec succès.")
+print("✅Modèle DL chargé avec succès.")
 
 # Fonction de prétraitement de l'image
 def preprocess_image(image: Image.Image):
@@ -28,7 +28,7 @@ def preprocess_image(image: Image.Image):
     return img_array
 
 # Endpoint pour prédire sur une image envoyée
-@app.post("/predict")
+@app.post("/predict_dl")
 async def predict(file: UploadFile = File(...)):
     """
     Reçoit une image, la prétraite et effectue une prédiction avec le modèle de deep learning.
@@ -77,13 +77,15 @@ async def predict_ml(data: PredictionInput):
     Reçoit une liste de caractéristiques, les prétraite et effectue une prédiction avec le modèle ML.
     """
     try:
-        # Convertir les données en tableau numpy et appliquer le scaling
-        input_data = np.array(data.features).reshape(1, -1)
+        # Convertir en DataFrame avec les noms des colonnes attendus
+        input_data = pd.DataFrame([data.features], columns=scaler.feature_names_in_)
+
+        # Appliquer le scaling
         input_scaled = scaler.transform(input_data)
 
         # Faire la prédiction
         prediction = ml_model.predict(input_scaled)[0]
-        diagnostic = "1= Malin (Cancer) " if prediction == 1 else "0= Bénin (Sans Cancer)"
+        diagnostic = "1= Malin (Cancer)" if prediction == 1 else "0= Bénin (Sans Cancer)"
 
         return {"diagnostic": diagnostic}
 

@@ -2,9 +2,9 @@ import os
 import numpy as np
 from tensorflow import keras
 from keras import Model, Sequential, layers, regularizers, optimizers
-from keras.regularizers import l1_l2, l2
+from tensorflow.keras.regularizers import l1_l2, l2
 # from keras.preprocessing import image_dataset_from_directory
-from keras.callbacks import EarlyStopping, ModelCheckpoint
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 
 #///////////initialize_model/////////////
 def dl_initialize_model():
