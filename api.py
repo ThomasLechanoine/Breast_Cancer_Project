@@ -25,14 +25,13 @@ def preprocess_image(image_input):
     Charge et prétraite une image depuis un fichier ou un objet BytesIO.
     """
     if isinstance(image_input, BytesIO):
-        img = load_img(image_input, target_size=(224, 224))  # 📌 Corrige le problème
+        img = load_img(image_input, target_size=(224, 224))
     else:
-        img = load_img(image_input, target_size=(224, 224))  # Compatible avec les fichiers
+        img = load_img(image_input, target_size=(224, 224))
 
     img_array = img_to_array(img) / 255.0  # Normalize
     img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
     return img_array
-
 
 # Endpoint pour prédire sur une image envoyée
 @app.post("/predict_dl")
