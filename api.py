@@ -38,12 +38,10 @@ async def predict(file: UploadFile = File(...)):
         image = Image.open(BytesIO(await file.read()))
 
         # Prétraitement de l'image
-        img_array = preprocess_image(image)
+        img_array = preprocess_image(image) #a modifier selon nouvelles etapes de preprocessing ------------------------------ !!!!
 
         # Faire la prédiction
         res = model.predict(img_array)[0][0]
-        # Ajout de logs pour comprendre la sortie du modèle
-        print(f"Valeur brute de la prédiction : {res}")  # Debugging
 
         # Interprétation du résultat
         diagnostic = "Positif" if res >= 0.5 else "Négatif"

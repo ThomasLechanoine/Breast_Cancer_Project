@@ -11,15 +11,11 @@ from Machine_learning.ml_model import create_model, tune_hyperparameters, evalua
 
 # // IMPORT DL///
 import os
-import numpy as np
 import tensorflow as tf
 from Deep_learning.dl_model import dl_initialize_model, dl_compile_model, dl_train_model
 from Deep_learning.dl_preprocess import download  # Si besoin de télécharger et prétraiter les données
 
 #prediction DL
-import os
-import numpy as np
-import tensorflow as tf
 from tensorflow.keras.preprocessing import image_dataset_from_directory
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import load_img, img_to_array, array_to_img
@@ -36,7 +32,7 @@ fonctions for machine learning based on CSV
 """
 
 # Charger et prétraiter les données
-data = load_data(ML_DATA_PATH)  # Remplace l'ancien chemin en du
+data = load_data(ML_DATA_PATH)
 X_train, X_test, y_train, y_test, scaler, le = preprocess_data(data)
 
 # Initialiser et optimiser le modèle
@@ -115,7 +111,7 @@ print("Entraînement terminé et modèle sauvegardé sous 'best_model.h5' !")
 
 # ///////////////////// PREDICTION_ML ////////////////////
 
-def ml_predict(input_data):
+def ml_predict(input_data): #attention est ce que la fonction doit etre appelée depuis app.py ou api.py ?? ---------------- !!!!!
     """
     Fonction pour faire une prédiction avec le modèle de Machine Learning.
     """
@@ -147,7 +143,7 @@ print(f"Prédiction Machine Learning : {result}")
 MODEL_PATH = DL_MODEL_PATH  #<------------------------------------------------
 
 
-def load_trained_model():
+def load_trained_model(): #attention est ce que la fonction doit etre appelée depuis app.py ou api.py ?? ---------------- !!!!!
     """
     Charge le modèle entraîné depuis le fichier best_model.h5.
     """
@@ -159,7 +155,7 @@ def load_trained_model():
     print("✅ Modèle chargé avec succès.")
     return model
 
-def predictImage(image_path, model):
+def predictImage(image_path, model): #attention est ce que la fonction doit etre appelée depuis app.py ou api.py ?? ---------------- !!!!!
     '''Takes an image and a model
     '''
     img = load_img(image_path, target_size=(150, 150))

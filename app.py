@@ -23,7 +23,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "Machine
 st.set_page_config(page_title="Application de Détection de Cancer du sein", layout="wide")
 
 # Image à afficher à gauche dans la sidebar
-image_path_left = os.path.join("/home", "bren", "code", "ThomasLechanoine", "Breast_Cancer_Project", "app_img", "01.png") #<------------------------------------------------
+image_path_left = os.path.join("/home", "bren", "code", "ThomasLechanoine", "Breast_Cancer_Project", "app_img", "2.jpg") #<------------------------------------------------
 image = Image.open(image_path_left)
 
 # Afficher l'image sur la barre latérale
@@ -49,6 +49,16 @@ if st.sidebar.button("Prédiction Cancer (ML)"):
 
 page = st.session_state.page
 
+# Image à afficher à gauche dans la sidebar
+image_path_left = os.path.join("/home", "bren", "code", "ThomasLechanoine", "Breast_Cancer_Project", "app_img", "01.png") #<------------------------------------------------
+image = Image.open(image_path_left)
+
+# Afficher l'image sur la barre latérale
+st.sidebar.image(image_path_left, use_container_width=True)
+
+# Load and display the cover image
+# image_path = os.path.join("/home", "bren", "code", "ThomasLechanoine", "Breast_Cancer_Project", "app_img", "01.png")
+# st.image(image_path, use_container_width=True)
 
 # ---------------------- GRAPHICS PAGE ----------------------
 if page == "Graphiques":
@@ -56,13 +66,13 @@ if page == "Graphiques":
     st.write("Analyse des données avec des visualisations graphiques.")
 
     # Définition du répertoire contenant les graphiques
-    graph_dir = os.path.join("/home", "bren", "code", "ThomasLechanoine", "Breast_Cancer_Project", "app_img") #<------------------------------------------------
+    graph_dir = os.path.join("/home", "bren", "code", "ThomasLechanoine", "Breast_Cancer_Project", "app_img")
 
-    # Liste des graphiques avec descriptions
+    # Liste des nouveaux graphiques avec descriptions
     graph_data = [
-        {"file": "image_graph1.png", "title": "Graphique 1", "description": "📊 Ce graphique montre la distribution des caractéristiques du dataset."},
-        {"file": "image_graph2.png", "title": "Graphique 2", "description": "🔬 Cette visualisation met en évidence la corrélation entre les différentes variables."},
-        {"file": "image_graph3.png", "title": "Graphique 3", "description": "📈 Analyse des performances du modèle avec différentes métriques d’évaluation."}
+        {"file": "distribution_age_kde_true.jpg", "title": "Graphique 1", "description": "🔬 Distribution des âges avec courbe KDE."},
+        {"file": "graphique2.jpg", "title": "Graphique 2", "description": "📊 Analyse exploratoire des données."},
+        {"file": "graphique.jpg", "title": "Graphique 3", "description": "📈 Un autre graphique pertinent pour l'analyse."}
     ]
 
     # Affichage des images avec menu déroulant pour description
@@ -151,6 +161,10 @@ if page == "Prédiction Mammographie (DL)":
 
         🔍 **Exemple** : Un modèle de Deep Learning peut analyser une mammographie et dire si une tumeur est présente ou non.
         """)
+        # Ajout de l'image après la définition du Deep Learning
+        choco_image_path = os.path.join("/home", "bren", "code", "ThomasLechanoine", "Breast_Cancer_Project", "app_img", "choco.jpg")
+        if os.path.exists(choco_image_path):
+            st.image(choco_image_path, caption="Illustration complémentaire", use_column_width=True)
 
     # Ajout d'un deuxième sous-titre avant l'input d'image
     st.subheader("Analyse de mammographie")
