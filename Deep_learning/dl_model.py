@@ -5,6 +5,8 @@ from keras import Model, Sequential, layers, regularizers, optimizers
 from tensorflow.keras.regularizers import l1_l2, l2
 # from keras.preprocessing import image_dataset_from_directory
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
+from params import *
+from tensorflow.keras.metrics import Recall
 
 #///////////initialize_model/////////////
 def dl_initialize_model():
@@ -33,7 +35,7 @@ def dl_initialize_model():
     return model
 
 #///////////compile_model/////////////
-def dl_compile_model(model, optimizer='adam', loss='binary_crossentropy', metrics=['accuracy', 'recall']):
+def dl_compile_model(model, optimizer=DL_OPTIMIZER, loss=DL_LOSS_FUNCTION, metrics=DL_METRICS):
     model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
     print("✅ Model compiled")
     return model
@@ -45,9 +47,10 @@ def dl_train_model(model, train_dataset, validation_dataset, epochs=30):
 
     callbacks = [
         ModelCheckpoint(os.path.join(model_dir, 'best_model.h5'),
-                        save_best_only=True,
-                        monitor='val_recall',
-                        mode='max'),
+                save_best_only=True,
+                monitor='val_recall',
+                mode='max',
+                save_weights_only=False),
         EarlyStopping(monitor='val_loss', patience=15, verbose=1, mode='min')
     ]
 
@@ -58,4 +61,5 @@ def dl_train_model(model, train_dataset, validation_dataset, epochs=30):
         callbacks=callbacks,
         verbose=1
     )
+
     return model, history

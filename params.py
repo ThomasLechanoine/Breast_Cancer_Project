@@ -23,7 +23,7 @@ ML_SCALER_PATH = os.path.join(BASE_DIR, "Machine_learning", "models_saved", "ml_
 ##################  PARAMÈTRES D'ENTRAÎNEMENT  ##################
 DL_BATCH_SIZE = 32
 DL_IMG_SIZE = (224, 224)
-DL_EPOCHS = 30
+DL_EPOCHS = 15
 DL_OPTIMIZER = 'adam'
 DL_LOSS_FUNCTION = 'binary_crossentropy'
 DL_METRICS = ['accuracy', 'recall']
@@ -31,10 +31,3 @@ DL_METRICS = ['accuracy', 'recall']
 ##################  CONFIGURATION API  ##################
 ML_API_URL = "http://127.0.0.1:8000/predict_ml"  # ✅ Corrigé
 DL_API_URL = "http://127.0.0.1:8000/predict_dl"
-
-
-##################  PARAMÈTRES D'ENTRAÎNEMENT DU MODÈLE DL  ##################
-
-DL_OPTIMIZER = "adam"  # Optimiseur du modèle (peut être 'adam', 'sgd', etc.)
-DL_LOSS_FUNCTION = "binary_crossentropy"  # Fonction de perte pour classification binaire
-DL_METRICS = ["accuracy", "recall"]  # Liste des métriques utilisées pour l'entraînement

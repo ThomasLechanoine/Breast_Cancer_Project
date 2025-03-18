@@ -81,8 +81,12 @@ def train_dl():
 
     # Sauvegarde du modèle
     os.makedirs(os.path.dirname(DL_MODEL_PATH), exist_ok=True)
-    model.save(DL_MODEL_PATH)
-    print(f"✅ Modèle DL sauvegardé dans {DL_MODEL_PATH}.")
+    try:
+        print(f"🔄 Sauvegarde du modèle en cours dans : {DL_MODEL_PATH}")
+        model.save(DL_MODEL_PATH)
+        print(f"✅ Modèle sauvegardé avec succès dans {DL_MODEL_PATH}")
+    except Exception as e:
+        print(f"❌ Erreur lors de la sauvegarde du modèle : {e}")
 
 # 📌 Point d'entrée principal
 if __name__ == "__main__":
