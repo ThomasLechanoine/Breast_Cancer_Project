@@ -7,11 +7,14 @@ import joblib
 import sys
 import os
 import pandas as pd
+import numpy as np
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import confusion_matrix
 from params import *  # Importation des URLs API
-
+import tensorflow as tf
+from Deep_learning.dl_model import RandomFixedDense
 # Machine Learning Imports
 from Machine_learning.ml_preprocess import load_data, preprocess_data
 from Machine_learning.ml_model import create_model, tune_hyperparameters, evaluate_model
@@ -80,7 +83,7 @@ if page == "Graphiques":
         img_path = os.path.join(graph_dir, graph["file"])
 
         with st.expander(f"📊 {graph['title']}"):
-            st.image(img_path, use_column_width=True)
+            st.image(img_path, use_container_width=True)
             st.write(graph["description"])
 
 # Ajout de style CSS pour rendre le contour du menu déroulant plus visible
@@ -107,7 +110,7 @@ st.markdown("""
 # ---------------------- LOAD MODELS DL---------------------
 @st.cache_resource
 def load_dl_model():
-    return tf.keras.models.load_model(DL_MODEL_PATH)
+    return tf.keras.models.load_model(DL_MODEL_PATH, custom_objects={"RandomFixedDense": RandomFixedDense})
  #//////////
 
 model = load_dl_model()
@@ -147,73 +150,189 @@ X_test, y_test = load_test_data()
 
 
 #//////////////////////Page de prediction DEEP LEARNING/////////////////////////////
+# ////////////////////// Page de prédiction DEEP LEARNING /////////////////////////////
 
 if page == "Prédiction Mammographie (DL)":
     # Configuration de la page
     st.title("Prédiction de Cancer via Deep Learning")
 
-        # Ajout du sous-titre et explication du Deep Learning
+    # ---------------------- SECTION NOTRE DÉFI ----------------------
+    st.subheader("Notre défi ?")
+
+    with st.expander("Analyser les mammographies"):
+        st.write("""
+        🔍 Notre défi était d'utiliser le **Deep Learning** pour analyser les images de **mammographies** et **détecter la présence d'une tumeur**.
+
+        📊 Le modèle de Deep Learning **analyse directement les images**.""")
+
+
+    # ---------------------- SECTION EXPLICATION DEEP LEARNING ----------------------
     st.subheader("Qu'est-ce que le Deep Learning ?")
 
     with st.expander("Définition du Deep Learning (Expliqué simplement)"):
         st.write("""
-        🔍 Le **Deep Learning** est une branche de l'intelligence artificielle.
+        🔍 Le Deep Learning est une branche avancée de l'intelligence artificielle.
 
-        🔍 Imagine un enfant qui apprend à reconnaître un chat en voyant beaucoup d'images de chats.
-            Le Deep Learning fait pareil !
-            Avec des **milliers d'exemples**, le model 'apprend' à **reconnaître** des objets, des visages, des animaux, etc.""")
+        🧠 Imagine un enfant qui apprend à reconnaître une chocolatine en voyant de nombreuses images de chocolatines.
 
-        # Ajout de l'image après la définition du Deep Learning
+        De la même façon, le Deep Learning fonctionne en apprenant à partir d’un grand nombre d’exemples.
+
+        📸 Par exemple, on montre au modèle pleins d’images de chocolatines, en lui indiquant : "Ceci est une chocolatine". Grâce à ces données, il apprend progressivement à les reconnaître automatiquement.
+        """)
+
+        # Ajout d'une illustration si elle est disponible
         choco_image_path = os.path.join("/home", "bren", "code", "ThomasLechanoine", "Breast_Cancer_Project", "app_img", "choco.jpg")
         if os.path.exists(choco_image_path):
-            st.image(choco_image_path, caption="Illustration complémentaire", use_column_width=True)
+            st.image(choco_image_path, caption="Illustration complémentaire", use_container_width=True)
 
         st.write("""
-        Dans notre cas : Un modèle de Deep Learning peut analyser une mammographie et dire si une tumeur est présente ou non.
+        📸 Dans notre cas, nous avons montré au modèle **des milliers de mammographies**, pour qu'il apprenne à **reconnaître si il y a une tumeur ou non**.
+
         """)
 
 
-    # Ajout d'un deuxième sous-titre avant l'input d'image
-    st.subheader("Analyse de mammographie")
+    # ---------------------- OUTIL DE PRÉDICTION ----------------------
+    st.subheader("Outil de prédiction")
+    st.write("Nous téléchargeons une image de mammographie, notre modèle l'analyse et donne un résultat.")
 
+    # ---------------------- PREMIER UPLOAD D'IMAGE AVEC PRÉDICTION ----------------------
+
+    st.subheader("📸 Analyse de Mammographie 1")
     st.write("Téléchargez une image de mammographie et appuyez sur **Prédiction** pour obtenir le résultat.")
 
-    # Ajout d'un uploader pour charger une image
     uploaded_file = st.file_uploader("Téléchargez une image (PNG, JPG, JPEG)", type=["png", "jpg", "jpeg"])
 
-    DL_API_URL = DL_API_URL  # Plus tard, il suffira de changer cette URL avec l' API cloud #<------------------------------------------------
-
     if uploaded_file is not None:
-        # Load image
         image = Image.open(uploaded_file)
 
-        # Resize image to fit in a smaller area (e.g., max width 500px)
-        max_width = 500  # Set maximum width
+        # Redimensionner l’image pour l’affichage
+        max_width = 500
         w_percent = max_width / float(image.size[0])
-        new_height = int(float(image.size[1]) * w_percent)  # Maintain aspect ratio
+        new_height = int(float(image.size[1]) * w_percent)
         image_resized = image.resize((max_width, new_height), Image.LANCZOS)
 
-        # Display resized image
+        # Afficher l’image redimensionnée
         st.image(image_resized, caption="Image Redimensionnée", use_container_width=False)
 
         # Bouton de prédiction
         if st.button("Lancer la prédiction"):
-            # Convertir l'image en bytes pour l'envoyer à l'API
             img_bytes = io.BytesIO()
             image.save(img_bytes, format="PNG")
             img_bytes = img_bytes.getvalue()
 
-            # Envoi de l'image à l'API
             files = {"file": ("image.png", img_bytes, "image/png")}
-            response = requests.post(DL_API_URL, files=files)
 
-            # Vérification de la réponse
-            if response.status_code == 200:
-                result = response.json()
-                st.success(f"Résultat : {result['diagnostic']} ({result['probability']})")
-            else:
-                st.error("Erreur lors de la requête à l'API.")
+            try:
+                response = requests.post(DL_API_URL, files=files)
 
+                if response.status_code == 200:
+                    result = response.json()
+                    diagnostic = result.get('diagnostic', 'Inconnu')
+
+                    if "Positif" in diagnostic:
+                        diagnostic_text = "🔴 Positif (1) : Tumeur détectée"
+                        color_code = "#F76C6C"
+                    else:
+                        diagnostic_text = "🔵 Négatif (0) : Pas de Tumeur détectée"
+                        color_code = "#A1C4FD"
+
+                    st.markdown(
+                        f'<div style="background-color:{color_code}; padding:15px; border-radius:10px; text-align:center; '
+                        f'font-size:16px; color:white; font-weight:bold;">'
+                        f'{diagnostic_text}'
+                        '</div>',
+                        unsafe_allow_html=True
+                    )
+                else:
+                    st.error("Erreur lors de la requête à l’API")
+
+            except Exception as e:
+                st.error(f"Erreur lors de l’appel API : {e}")
+
+    # ---------------------- DEUXIÈME UPLOAD D'IMAGE AVEC PRÉDICTION ----------------------
+
+    st.subheader("📸 Analyse de Mammographie 2")
+    st.write("Téléchargez une image de mammographie et appuyez sur **Prédiction** pour obtenir le résultat.")
+
+    uploaded_file_2 = st.file_uploader("Téléchargez une image (PNG, JPG, JPEG)", type=["png", "jpg", "jpeg"], key="uploader_2")
+
+    if uploaded_file_2 is not None:
+        image_2 = Image.open(uploaded_file_2)
+
+        # Redimensionner l’image pour l’affichage
+        max_width = 500
+        w_percent = max_width / float(image_2.size[0])
+        new_height = int(float(image_2.size[1]) * w_percent)
+        image_resized_2 = image_2.resize((max_width, new_height), Image.LANCZOS)
+
+        # Afficher l’image redimensionnée
+        st.image(image_resized_2, caption="Deuxième Image Redimensionnée", use_container_width=False)
+
+        # Bouton de prédiction pour la deuxième image
+        if st.button("Lancer la deuxième prédiction"):
+            img_bytes_2 = io.BytesIO()
+            image_2.save(img_bytes_2, format="PNG")
+            img_bytes_2 = img_bytes_2.getvalue()
+
+            files_2 = {"file": ("image2.png", img_bytes_2, "image/png")}
+
+            try:
+                response_2 = requests.post(DL_API_URL, files=files_2)
+
+                if response_2.status_code == 200:
+                    result_2 = response_2.json()
+                    diagnostic_2 = result_2.get('diagnostic', 'Inconnu')
+
+                    if "Positif" in diagnostic_2:
+                        diagnostic_text_2 = "🔴 Positif (1) : Tumeur détectée"
+                        color_code_2 = "#F76C6C"
+                    else:
+                        diagnostic_text_2 = "🔵 Négatif (0) : Pas de Tumeur détectée"
+                        color_code_2 = "#A1C4FD"
+
+                    st.markdown(
+                        f'<div style="background-color:{color_code_2}; padding:15px; border-radius:10px; text-align:center; '
+                        f'font-size:16px; color:white; font-weight:bold;">'
+                        f'{diagnostic_text_2}'
+                        '</div>',
+                        unsafe_allow_html=True
+                    )
+                else:
+                    st.error("Erreur lors de la requête à l’API")
+
+            except Exception as e:
+                st.error(f"Erreur lors de l’appel API : {e}")
+
+    # # 📌 Définition du chemin d'image de manière plus généralisable
+    # base_dir = os.path.dirname(os.path.abspath(__file__))  # Récupère le dossier actuel du script
+    # image_folder = os.path.join(base_dir, "app_img")  # Accès au dossier contenant les images
+    # image_path_cm_dl = os.path.join(image_folder, "matric_DL.png")  # Chemin complet
+
+    # # 📌 Vérifier si l'image existe avant d'afficher
+    # if os.path.exists(image_path_cm_dl):
+    #     with st.expander("📊 Afficher la Matrice de Confusion - Deep Learning"):
+    #         st.image(image_path_cm_dl, caption="Matrice de Confusion - Modèle Deep Learning", use_container_width=True)
+    # else:
+    #     st.warning(f"⚠️ L'image de la matrice de confusion n'a pas été trouvée : {image_path_cm_dl}")
+
+
+# Fonction pour afficher la matrice de confusion dans Streamlit
+# 📌 Ajout dans la section "Prédiction Mammographie (DL)"
+if page == "Prédiction Mammographie (DL)":
+    st.subheader("📊 Matrice de Confusion du modèle Deep Learning")
+
+    # 📌 Déterminer dynamiquement le dossier contenant `app.py`
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+    # 📌 Construire un chemin relatif et généralisable vers l'image
+    cm_image_path = os.path.join(BASE_DIR, "app_img", "Deep_learning_CM.jpg")
+
+    # 📌 Vérifier si le fichier existe avant d'afficher
+    if os.path.exists(cm_image_path):
+        with st.expander("📊 Afficher la Matrice de Confusion"):
+            st.image(cm_image_path, caption="Matrice de Confusion - Modèle Deep Learning", width= 100 ,use_container_width=True)
+    else:
+        st.warning(f"⚠️ L'image de la matrice de confusion n'a pas été trouvée : {cm_image_path}")
 
 
 # ///////////Page de prédiction via Machine Learning////////////
@@ -222,6 +341,11 @@ st.markdown("""
     <style>
         /* Fond général en bleu pastel */
         .stApp {
+            background-color: #E3F2FD !important;
+        }
+
+        /* Modification du header (bande supérieure) */
+        header, .st-emotion-cache-18ni7ap {
             background-color: #E3F2FD !important;
         }
 
@@ -271,32 +395,7 @@ st.markdown("""
             border: none !important;
         }
 
-        /* Amélioration des boutons + / - uniquement sur la page Machine Learning */
-        div[data-testid="stNumberInput"] button {
-            background-color: #4A90E2 !important; /* Bleu pastel */
-            color: #FFFFFF !important; /* Texte blanc */
-            border-radius: 6px !important;
-            font-size: 14px !important;
-            font-weight: bold !important;
-            padding: 6px 12px !important;
-            border: none !important;
-            transition: all 0.2s ease-in-out !important;
-        }
-
-        /* Effet hover sur les boutons + / - */
-        div[data-testid="stNumberInput"] button:hover {
-            background-color: #357ABD !important; /* Bleu plus foncé */
-            transform: scale(1.1) !important; /* Effet léger d'agrandissement */
-        }
-
-        /* Sections dépliables (Expander) */
-        .st-expander {
-            background-color: #B6D0E2 !important;
-            border: 2px solid #7DA0B6 !important;
-            color: #1A1A1A !important;
-        }
-
-        /* Sidebar */
+        /* Style du sidebar */
         .stSidebar {
             background-color: #B2D3FF !important;
         }
@@ -347,7 +446,15 @@ if page == "Prédiction Cancer (ML)":
     }
 
     # ------------------- PRÉDICTION 1 -------------------
+    # Ajout du sous-titre et explication du Machine Learning
+    st.subheader("Notre défi?")
 
+    with st.expander("Analyser les tumeurs"):
+        st.write("""
+        🔍 Notre défi était de **pouvoir classer les tumeurs malignes et bénignes** basé sur les informations de caractéristiques de tumeurs issues d'une **analyse d'images médicales**.
+
+        Pour cela, nous avons utilisé le machine learning.
+        """)
 
     # Ajout du sous-titre et explication du Machine Learning
     st.subheader("Qu'est-ce que le Machine Learning ?")
@@ -356,16 +463,17 @@ if page == "Prédiction Cancer (ML)":
         st.write("""
         🔍 **Le Machine Learning (ML)** est une branche de l'intelligence artificielle.
 
-        🎯 Plutôt que d’être **programmés manuellement** pour chaque tâche, les modèles de Machine Learning trouvent **eux-mêmes des paterns** dans les données.
+        🎯 C'est une technique qui permet à l'ordinateur d'apprendre à partir des données, de découvrir des patterns et de faire des prédictions.
 
-        🏥 **Exemple médical** : En analysant des **milliers de tumeurs**, un modèle peut **prédire** si une nouvelle tumeur est bénigne ou maligne, simplement en comparant ses caractéristiques avec celles de tumeurs déjà connues.
+        🏥 **Exemple médical** : un modèle peut **prédire** si une nouvelle tumeur est bénigne ou maligne, simplement en comparant ses caractéristiques avec celles de tumeurs déjà connues.
         """)
 
     # Ajout d'un deuxième sous-titre avant l'input des caractéristiques tumorales
-    st.subheader("Analyse des caractéristiques de la tumeur")
-    st.write("Veuillez entrer les mesures de la tumeur pour obtenir une prédiction.")
+    st.subheader("Outil de prédiction")
+    # st.write("Veuillez entrer les mesures de la tumeur pour obtenir une prédiction.")
+    st.write("Nous entrons les paramètres, notre modèle démarre et donne une prédiction.")
 
-    st.subheader("Prédiction 1 (Maligne)")
+    st.subheader("Prédiction 1")
     with st.form(key="prediction_form_1"):
         columns = st.columns(5)
         feature_values_1 = {}
@@ -395,10 +503,10 @@ if page == "Prédiction Cancer (ML)":
 
             # **Mise en forme du résultat**
             if "Malin" in prediction_1:
-                diagnostic_1 = "🔴 Malin (Cancer)"
+                diagnostic_1 = "🔴 Tumeur Maligne"
                 color_1 = "#F76C6C"  # Rouge pastel
             else:
-                diagnostic_1 = "🔵 Bénin (Sans Cancer)"
+                diagnostic_1 = "🔵 Tumeur Bénigne"
                 color_1 = "#A1C4FD"  # Bleu pastel
 
             st.markdown(
@@ -409,7 +517,7 @@ if page == "Prédiction Cancer (ML)":
                 unsafe_allow_html=True
             )
     # ------------------- PRÉDICTION 2 -------------------
-    st.subheader("Prédiction 2 (Bénigne)")
+    st.subheader("Prédiction 2")
     with st.form(key="prediction_form_2"):
         columns = st.columns(5)
         feature_values_2 = {}
@@ -441,7 +549,7 @@ if page == "Prédiction Cancer (ML)":
                 diagnostic_2 = "🔴 Malin (Cancer)"
                 color_2 = "#F76C6C"  # Rouge pastel
             else:
-                diagnostic_2 = "🔵 Bénin (Sans Cancer)"
+                diagnostic_2 = "🔵 Bénin"
                 color_2 = "#A1C4FD"  # Bleu pastel
 
             st.markdown(
@@ -452,40 +560,38 @@ if page == "Prédiction Cancer (ML)":
                 unsafe_allow_html=True
             )
 
-   #--------------------CONFUSION MATRIX------------------
-    if submit_button_1 or submit_button_2:
-        # Select appropriate input
-        input_data = input_data_1 if submit_button_1 else input_data_2
+#--------------------CONFUSION MATRIX------------------
+# ------------------- AFFICHAGE DE LA MATRICE DE CONFUSION SUR LA PAGE ML -------------------
+if page == "Prédiction Cancer (ML)":
+    st.subheader("📊 Précision de notre Modèle de Machine Learning")
 
-        # Scale the input data
-        input_data_scaled = scaler.transform(input_data)
+    with st.expander("🔍 Afficher la Matrice de Confusion"):
+        st.write("Cette matrice permet d'évaluer les performances du modèle en comparant les valeurs réelles et prédites.")
 
-        # Make the prediction
-        prediction = model.predict(input_data_scaled)[0]
-        diagnostic = "Malin (Cancer)" if prediction == 1 else "Bénin (Sans Cancer)"
-
-        # Display the result
-        st.success(f"Résultat de la prédiction : {diagnostic}")
-
-        # Compute Confusion Matrix
+        # Calcul des prédictions sur l'ensemble de test
         y_pred = model.predict(scaler.transform(X_test))
         cm = confusion_matrix(y_test, y_pred)
 
-        # Custom colormap similar to provided UI colors
-        from matplotlib.colors import LinearSegmentedColormap
-        custom_cmap = LinearSegmentedColormap.from_list("custom_cmap", ["#e1f0ff", "#a7c8f2", "#6da0e5", "#2e75c5"])
-
-        # Display the Confusion Matrix as a Heatmap with customized colors
+        # Affichage de la matrice de confusion
         fig, ax = plt.subplots(figsize=(4, 3))
-        sns.heatmap(cm, annot=True, fmt='g', cmap=custom_cmap, cbar=True,
-                    linewidths=1, linecolor='white', ax=ax)
+        sns.heatmap(cm, annot=True, fmt='g', cmap="Blues", cbar=True, linewidths=1, linecolor='white', ax=ax)
         ax.set_xlabel("Valeurs Prédites", fontsize=12, color='#333333')
         ax.set_ylabel("Valeurs Réelles", fontsize=12, color='#333333')
         ax.set_title("Matrice de Confusion", fontsize=14, color='#333333')
 
-        # Improve tick labels for visibility
-        ax.xaxis.set_tick_params(labelsize=10, colors='#333333')
-        ax.yaxis.set_tick_params(labelsize=12, colors='#333333')
-
         plt.tight_layout()
         st.pyplot(fig)
+
+        # Ajout de la phrase de précision sous la matrice de confusion
+        st.markdown(
+            """
+            **🔍 Notre modèle est capable d'**identifier correctement :
+
+            🔹 **98 % des patientes** qui ont réellement une tumeur **maligne**.
+
+            🔹 **99 % des personnes** qui ont une tumeur **bénigne**.
+            """
+        )
+
+
+#-------------------
