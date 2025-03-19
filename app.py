@@ -41,10 +41,10 @@ st.sidebar.title("Navigation")
 
 # Maintain session state for page navigation
 if "page" not in st.session_state:
-    st.session_state.page = "Graphiques"
+    st.session_state.page = "Prédiction Mammographie (DL)"
 
-if st.sidebar.button("Graphiques"):
-    st.session_state.page = "Graphiques"
+# if st.sidebar.button("Graphiques"):
+#     st.session_state.page = "Graphiques"
 if st.sidebar.button("Prédiction Mammographie (DL)"):
     st.session_state.page = "Prédiction Mammographie (DL)"
 if st.sidebar.button("Prédiction Cancer (ML)"):
@@ -63,28 +63,28 @@ st.sidebar.image(image_path_left, use_container_width=True)
 # image_path = os.path.join("/home", "bren", "code", "ThomasLechanoine", "Breast_Cancer_Project", "app_img", "01.png")
 # st.image(image_path, use_container_width=True)
 
-# ---------------------- GRAPHICS PAGE ----------------------
-if page == "Graphiques":
-    st.title("Visualisation des Graphiques")
-    st.write("Analyse des données avec des visualisations graphiques.")
+# # ---------------------- GRAPHICS PAGE ----------------------
+# if page == "Graphiques":
+#     st.title("Visualisation des Graphiques")
+#     st.write("Analyse des données avec des visualisations graphiques.")
 
-    # Définition du répertoire contenant les graphiques
-    graph_dir = os.path.join("/home", "bren", "code", "ThomasLechanoine", "Breast_Cancer_Project", "app_img")
+#     # Définition du répertoire contenant les graphiques
+#     graph_dir = os.path.join("/home", "bren", "code", "ThomasLechanoine", "Breast_Cancer_Project", "app_img")
 
-    # Liste des nouveaux graphiques avec descriptions
-    graph_data = [
-        {"file": "distribution_age_kde_true.jpg", "title": "Graphique 1", "description": "🔬 Distribution des âges avec courbe KDE."},
-        {"file": "graphique2.jpg", "title": "Graphique 2", "description": "📊 Analyse exploratoire des données."},
-        {"file": "graphique.jpg", "title": "Graphique 3", "description": "📈 Un autre graphique pertinent pour l'analyse."}
-    ]
+#     # Liste des nouveaux graphiques avec descriptions
+#     graph_data = [
+#         {"file": "distribution_age_kde_true.jpg", "title": "Graphique 1", "description": "🔬 Distribution des âges avec courbe KDE."},
+#         {"file": "graphique2.jpg", "title": "Graphique 2", "description": "📊 Analyse exploratoire des données."},
+#         {"file": "graphique.jpg", "title": "Graphique 3", "description": "📈 Un autre graphique pertinent pour l'analyse."}
+#     ]
 
-    # Affichage des images avec menu déroulant pour description
-    for graph in graph_data:
-        img_path = os.path.join(graph_dir, graph["file"])
+#     # Affichage des images avec menu déroulant pour description
+#     for graph in graph_data:
+#         img_path = os.path.join(graph_dir, graph["file"])
 
-        with st.expander(f"📊 {graph['title']}"):
-            st.image(img_path, use_container_width=True)
-            st.write(graph["description"])
+#         with st.expander(f"📊 {graph['title']}"):
+#             st.image(img_path, use_container_width=True)
+#             st.write(graph["description"])
 
 # Ajout de style CSS pour rendre le contour du menu déroulant plus visible
 st.markdown("""
@@ -149,21 +149,11 @@ def load_test_data():
 X_test, y_test = load_test_data()
 
 
-#//////////////////////Page de prediction DEEP LEARNING/////////////////////////////
 # ////////////////////// Page de prédiction DEEP LEARNING /////////////////////////////
 
 if page == "Prédiction Mammographie (DL)":
     # Configuration de la page
     st.title("Prédiction de Cancer via Deep Learning")
-
-    # ---------------------- SECTION NOTRE DÉFI ----------------------
-    st.subheader("Notre défi ?")
-
-    with st.expander("Analyser les mammographies"):
-        st.write("""
-        🔍 Notre défi était d'utiliser le **Deep Learning** pour analyser les images de **mammographies** et **détecter la présence d'une tumeur**.
-
-        📊 Le modèle de Deep Learning **analyse directement les images**.""")
 
 
     # ---------------------- SECTION EXPLICATION DEEP LEARNING ----------------------
@@ -171,7 +161,7 @@ if page == "Prédiction Mammographie (DL)":
 
     with st.expander("Définition du Deep Learning (Expliqué simplement)"):
         st.write("""
-        🔍 Le Deep Learning est une branche avancée de l'intelligence artificielle.
+        🔍 Le Deep Learning est une branche de l'intelligence artificielle.
 
         🧠 Imagine un enfant qui apprend à reconnaître une chocolatine en voyant de nombreuses images de chocolatines.
 
@@ -191,16 +181,27 @@ if page == "Prédiction Mammographie (DL)":
         """)
 
 
+    # ---------------------- SECTION NOTRE DÉFI ----------------------
+    st.subheader("Notre défi ?")
+
+    with st.expander("Analyser les mammographies"):
+        st.write("""
+        🔍 Notre défi était d'utiliser le **Deep Learning** pour analyser les images de **mammographies** et **détecter la présence d'une tumeur**.
+
+        📊 Le modèle de Deep Learning **analyse directement les images**.""")
+
     # ---------------------- OUTIL DE PRÉDICTION ----------------------
     st.subheader("Outil de prédiction")
     st.write("Nous téléchargeons une image de mammographie, notre modèle l'analyse et donne un résultat.")
+
+
 
     # ---------------------- PREMIER UPLOAD D'IMAGE AVEC PRÉDICTION ----------------------
 
     st.subheader("📸 Analyse de Mammographie 1")
     st.write("Téléchargez une image de mammographie et appuyez sur **Prédiction** pour obtenir le résultat.")
 
-    uploaded_file = st.file_uploader("Téléchargez une image (PNG, JPG, JPEG)", type=["png", "jpg", "jpeg"])
+    uploaded_file = st.file_uploader("", type=["png", "jpg", "jpeg"])
 
     if uploaded_file is not None:
         image = Image.open(uploaded_file)
@@ -254,7 +255,7 @@ if page == "Prédiction Mammographie (DL)":
     st.subheader("📸 Analyse de Mammographie 2")
     st.write("Téléchargez une image de mammographie et appuyez sur **Prédiction** pour obtenir le résultat.")
 
-    uploaded_file_2 = st.file_uploader("Téléchargez une image (PNG, JPG, JPEG)", type=["png", "jpg", "jpeg"], key="uploader_2")
+    uploaded_file_2 = st.file_uploader("", type=["png", "jpg", "jpeg"], key="uploader_2")
 
     if uploaded_file_2 is not None:
         image_2 = Image.open(uploaded_file_2)
@@ -446,6 +447,18 @@ if page == "Prédiction Cancer (ML)":
     }
 
     # ------------------- PRÉDICTION 1 -------------------
+
+
+    # Ajout du sous-titre et explication du Machine Learning
+    st.subheader("Qu'est-ce que le Machine Learning ?")
+
+    with st.expander("Définition du Machine Learning (Expliqué simplement)"):
+        st.write("""
+        🔍 **Le Machine Learning (ML)** est une branche de l'intelligence artificielle.
+
+        🎯 C'est une technique qui permet à l'ordinateur d'apprendre à partir des données, de découvrir des patterns et de faire des prédictions.
+        """)
+
     # Ajout du sous-titre et explication du Machine Learning
     st.subheader("Notre défi?")
 
@@ -456,20 +469,10 @@ if page == "Prédiction Cancer (ML)":
         Pour cela, nous avons utilisé le machine learning.
         """)
 
-    # Ajout du sous-titre et explication du Machine Learning
-    st.subheader("Qu'est-ce que le Machine Learning ?")
-
-    with st.expander("Définition du Machine Learning (Expliqué simplement)"):
-        st.write("""
-        🔍 **Le Machine Learning (ML)** est une branche de l'intelligence artificielle.
-
-        🎯 C'est une technique qui permet à l'ordinateur d'apprendre à partir des données, de découvrir des patterns et de faire des prédictions.
-
-        🏥 **Exemple médical** : un modèle peut **prédire** si une nouvelle tumeur est bénigne ou maligne, simplement en comparant ses caractéristiques avec celles de tumeurs déjà connues.
-        """)
-
     # Ajout d'un deuxième sous-titre avant l'input des caractéristiques tumorales
     st.subheader("Outil de prédiction")
+
+
     # st.write("Veuillez entrer les mesures de la tumeur pour obtenir une prédiction.")
     st.write("Nous entrons les paramètres, notre modèle démarre et donne une prédiction.")
 
