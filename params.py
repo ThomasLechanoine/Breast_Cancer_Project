@@ -15,6 +15,8 @@ ML_DATA_PATH = os.path.join(BASE_DIR, "Data", "Machine_learning.csv")
 DL_ZIP_PATH = os.path.join(BASE_DIR, "Data", "Data_prepros.zip")
 DL_DATA_PATH = os.path.join(BASE_DIR, "Data", "Data_Deep_Learning")
 
+DL_DATASET_PATH = os.path.join(BASE_DIR, "Data/Data_Deep_Learning")
+
 ##################  CHEMINS DES MODÈLES  ##################
 DL_MODEL_PATH = os.path.join(BASE_DIR, "Deep_learning", "models_saved", "best_model.h5")
 ML_MODEL_PATH = os.path.join(BASE_DIR, "Machine_learning", "models_saved", "ml_best_model.pkl")
@@ -23,7 +25,7 @@ ML_SCALER_PATH = os.path.join(BASE_DIR, "Machine_learning", "models_saved", "ml_
 ##################  PARAMÈTRES D'ENTRAÎNEMENT  ##################
 DL_BATCH_SIZE = 32
 DL_IMG_SIZE = (224, 224)
-DL_EPOCHS = 15
+DL_EPOCHS = 5
 DL_OPTIMIZER = 'adam'
 DL_LOSS_FUNCTION = 'binary_crossentropy'
 DL_METRICS = ['accuracy', 'recall']
