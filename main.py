@@ -8,12 +8,27 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import RobustScaler, LabelEncoder
 from Machine_learning.ml_preprocess import load_data, preprocess_data
 from Machine_learning.ml_model import create_model, tune_hyperparameters, evaluate_model
-from Deep_learning.dl_model import dl_initialize_model, dl_compile_model, dl_train_model
-from Deep_learning.dl_preprocess import download
 from params import *
-from tensorflow.keras.preprocessing import image_dataset_from_directory
+import tensorflow as tf
+
+# ------------------------
+# 📌 Imports du Deep Learning
+from Deep_learning.dl_model import (
+    create_feature_extractor,
+    dl_initialize_edRVFL,
+    dl_compile_model,
+    dl_train_model
+)
+from Deep_learning.dl_custom_dataset import load_custom_dataset
+from Deep_learning.dl_preprocess import extract_features
 
 
+
+
+import sys
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+
+# ---------------------
 # 📌 Charger les modèles (évite le rechargement multiple)
 def load_models():
     print("🔄 Chargement des modèles...")
@@ -37,6 +52,7 @@ def preprocess_ml_data(data_path):
 
 # 📌 Entraîner le modèle ML
 def train_ml():
+    print("🔄 Entraînement du modèle Machine Learning...")
     data = load_data(ML_DATA_PATH)
     X_train, X_test, y_train, y_test, scaler, le = preprocess_data(data)
     best_model = tune_hyperparameters(X_train, y_train)
@@ -49,40 +65,42 @@ def train_ml():
 
 # 📌 Entraîner le modèle DL
 def train_dl():
-    # Vérifier les données
-    if not os.path.exists(DL_DATA_PATH):
-        download()
+    print("🔍 Vérification des données...")
+    if not os.path.exists(DL_DATASET_PATH):
+        print(f"❌ Erreur : Le dataset {DL_DATASET_PATH} n'existe pas.")
+        return
 
-    print("✅ Chargement des images...")
+    print("✅ Chargement des images avec CustomImageDataset...")
+    train_ds, val_ds = load_custom_dataset(DL_DATASET_PATH, DL_IMG_SIZE, batch_size=16)
 
-    # Charger les datasets
-    train_dataset = image_dataset_from_directory(
-        os.path.join(DL_DATA_PATH, "train"),
-        labels="inferred",
-        label_mode="binary",
-        batch_size=DL_BATCH_SIZE,
-        image_size=DL_IMG_SIZE,
-        shuffle=True
-    )
+    print("✅ Extraction des caractéristiques avec VGG16...")
+    feature_extractor = create_feature_extractor(DL_IMG_SIZE)
 
-    valid_dataset = image_dataset_from_directory(
-        os.path.join(DL_DATA_PATH, "valid"),
-        labels="inferred",
-        label_mode="binary",
-        batch_size=DL_BATCH_SIZE,
-        image_size=DL_IMG_SIZE,
-        shuffle=True
-    )
+    print("🔄 Extraction des features pour train...")
+    X_train_features, y_train = extract_features(feature_extractor, train_ds)
+    print("🔄 Extraction des features pour validation...")
+    X_val_features, y_val = extract_features(feature_extractor, val_ds)
 
-    # Initialisation et entraînement
-    model = dl_initialize_model()
+    print(f"✅ Caractéristiques extraites : X_train {X_train_features.shape}, y_train {y_train.shape}")
+
+    print("✅ Initialisation du modèle edRVFL...")
+    input_dim = X_train_features.shape[1]
+    model = dl_initialize_edRVFL(input_dim, num_classes=1, num_layers=5, hidden_units=50)
+
+    print("🔄 Compilation du modèle...")
     model = dl_compile_model(model, optimizer=DL_OPTIMIZER, loss=DL_LOSS_FUNCTION, metrics=DL_METRICS)
-    model, history = dl_train_model(model, train_dataset, valid_dataset, epochs=DL_EPOCHS)
 
-    # Sauvegarde du modèle
+    print("🚀 Entraînement du modèle...")
+    model, history = dl_train_model(model, X_train_features, y_train, X_val_features, y_val, epochs=DL_EPOCHS, batch_size=32)
+
+    print(f"🔄 Sauvegarde du modèle en cours dans : {DL_MODEL_PATH}")
     os.makedirs(os.path.dirname(DL_MODEL_PATH), exist_ok=True)
-    model.save(DL_MODEL_PATH)
-    print(f"✅ Modèle DL sauvegardé dans {DL_MODEL_PATH}.")
+
+    try:
+        model.save(DL_MODEL_PATH)
+        print(f"✅ Modèle sauvegardé avec succès dans {DL_MODEL_PATH}")
+    except Exception as e:
+        print(f"❌ Erreur lors de la sauvegarde du modèle : {e}")
 
 # 📌 Point d'entrée principal
 if __name__ == "__main__":
@@ -90,7 +108,12 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--train", choices=["ml", "dl", "all"], help="Lancer l'entraînement des modèles")
+    parser.add_argument("--evaluate_dl", action="store_true", help="Évaluer le modèle DL avec une matrice de confusion")
+    parser.add_argument("--debug", action="store_true", help="Activer le mode debug")
     args = parser.parse_args()
+
+    if args.debug:
+        print("🔎 Mode DEBUG activé")
 
     if args.train == "ml":
         train_ml()
@@ -99,3 +122,8 @@ if __name__ == "__main__":
     elif args.train == "all":
         train_ml()
         train_dl()
+
+    # 📌 Nouvelle option pour évaluer le modèle DL
+    if args.evaluate_dl:
+        print("📊 Évaluation du modèle Deep Learning en cours...")
+        os.system("python Deep_learning/dl_evaluate.py")  # Appelle le script d'évaluation
