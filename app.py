@@ -18,12 +18,16 @@ from Deep_learning.dl_model import RandomFixedDense
 # Machine Learning Imports
 from Machine_learning.ml_preprocess import load_data, preprocess_data
 from Machine_learning.ml_model import create_model, tune_hyperparameters, evaluate_model
+#----------------------------------------------------------------------------------------------------------
 
 # Add Machine_learning/ to sys.path for module access
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "Machine_learning")))
 
 # ---------------------- CONFIGURATION ----------------------
 st.set_page_config(page_title="Application de Détection de Cancer du sein", layout="wide")
+
+
+
 
 # Image à afficher à gauche dans la sidebar
 image_path_left = os.path.join("/home", "bren", "code", "ThomasLechanoine", "Breast_Cancer_Project", "app_img", "2.jpg") #<------------------------------------------------
@@ -32,23 +36,23 @@ image = Image.open(image_path_left)
 # Afficher l'image sur la barre latérale
 st.sidebar.image(image_path_left, use_container_width=True)
 
-# Load and display the cover image
-# image_path = os.path.join("/home", "bren", "code", "ThomasLechanoine", "Breast_Cancer_Project", "app_img", "01.png")
-# st.image(image_path, use_container_width=True)
-
 # ---------------------- CUSTOM PAGE NAVIGATION ----------------------
-st.sidebar.title("Navigation")
+st.sidebar.markdown(
+    "<div style='text-align: center; font-size: 22px; font-weight: bold;'>Navigation</div>",
+    unsafe_allow_html=True
+)
 
 # Maintain session state for page navigation
 if "page" not in st.session_state:
-    st.session_state.page = "Prédiction Mammographie (DL)"
+    st.session_state.page = "Prédiction Tumeurs (ML)"
 
 # if st.sidebar.button("Graphiques"):
 #     st.session_state.page = "Graphiques"
-if st.sidebar.button("Prédiction Mammographie (DL)"):
+if st.sidebar.button("🔬Prédiction Tumeurs \n (Machine Learning)", use_container_width=True):
+    st.session_state.page = "Prédiction Tumeurs (ML)"
+if st.sidebar.button("📸Prédiction Mammographie \n (Deep Learning)", use_container_width=True):
     st.session_state.page = "Prédiction Mammographie (DL)"
-if st.sidebar.button("Prédiction Cancer (ML)"):
-    st.session_state.page = "Prédiction Cancer (ML)"
+
 
 page = st.session_state.page
 
@@ -58,6 +62,7 @@ image = Image.open(image_path_left)
 
 # Afficher l'image sur la barre latérale
 st.sidebar.image(image_path_left, use_container_width=True)
+#------------------------------------------------------------------------------
 
 # Load and display the cover image
 # image_path = os.path.join("/home", "bren", "code", "ThomasLechanoine", "Breast_Cancer_Project", "app_img", "01.png")
@@ -87,6 +92,8 @@ st.sidebar.image(image_path_left, use_container_width=True)
 #             st.write(graph["description"])
 
 # Ajout de style CSS pour rendre le contour du menu déroulant plus visible
+#-------------------------------------------------------------------------------------------------------
+
 st.markdown("""
     <style>
         /* Style pour rendre le contour du menu déroulant plus visible */
@@ -105,7 +112,7 @@ st.markdown("""
         }
     </style>
 """, unsafe_allow_html=True)
-
+#-------------------------------------------------------------------------------------------------------
 
 # ---------------------- LOAD MODELS DL---------------------
 @st.cache_resource
@@ -148,53 +155,298 @@ def load_test_data():
 # Load test dataset
 X_test, y_test = load_test_data()
 
+# ////////////////////////Page de prédiction via Machine Learning/////////////////////////
+#----------------------------------------------
+st.markdown("""
+    <style>
+        /* Fond général en bleu pastel */
+        .stApp {
+            background-color: #E3F2FD !important;
+        }
+
+        /* Modification du header (bande supérieure) */
+        header, .st-emotion-cache-18ni7ap {
+            background-color: #E3F2FD !important;
+        }
+
+        /* Titres en couleur foncée pour contraste */
+        h1, h2, h3, h4, h5, h6, p, label {
+            color: #1A1A1A !important;
+            font-weight: bold !important;
+        }
+
+        /* Bouton principal (st.button et st.form_submit_button) */
+        div.stButton > button, div[data-testid="stFormSubmitButton"] > button {
+            background-color: #FFA69E !important; /* Rouge saumon pastel */
+            color: #FFFFFF !important; /* Texte blanc */
+            border-radius: 12px !important;
+            font-size: 18px !important;
+            font-weight: bold !important;
+            padding: 12px 24px !important;
+            border: none !important; /* Suppression des bordures */
+            box-shadow: none !important; /* Suppression de l'ombre */
+            transition: all 0.3s ease-in-out !important;
+        }
+
+        /* Effet hover sur les boutons */
+        div.stButton > button:hover, div[data-testid="stFormSubmitButton"] > button:hover {
+            background-color: #FF6B6B !important; /* Rouge plus foncé */
+            box-shadow: none !important; /* Suppression de l’ombre */
+            transform: scale(1.05) !important; /* Effet léger d'agrandissement */
+        }
+
+        /* Style des inputs */
+        .stNumberInput>div>div {
+            width: 140px !important;
+            border-radius: 8px !important;
+            border: 2px solid #A1C4FD !important; /* Bleu pastel */
+            background-color: #FFFFFF !important;
+            color: #1A1A1A !important;
+            padding: 5px !important;
+        }
+
+        /* Texte des inputs */
+        div[data-testid="stNumberInput"] input {
+            font-size: 14px !important;
+            padding: 10px !important;
+            text-align: center !important;
+            background-color: #FFFFFF !important;
+            color: #1A1A1A !important;
+            border: none !important;
+        }
+
+        /* Style du sidebar */
+        .stSidebar {
+            background-color: #B2D3FF !important;
+        }
+
+        /* Style des résultats de prédiction */
+        .stSuccess {
+            border-radius: 10px !important;
+            padding: 10px !important;
+            text-align: center !important;
+            font-weight: bold !important;
+            color: white !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+
+# ------------------- Machine Learning Prediction -------------------
+# URL de l'API pour la prédiction ML
+ML_API_URL = ML_API_URL  # !!! Remplacer cette URL si l'API est hébergée en ligne #<------------------------------------------------
+
+
+# ------------------- Machine Learning Prediction -------------------
+if page == "Prédiction Tumeurs (ML)":
+    st.title("Classification de tumeurs via Machine Learning")
+
+    #  Valeurs par défaut (corrigées)
+    default_values_1 = {
+        "radius_mean": 17.99, "texture_mean": 10.38, "perimeter_mean": 122.8, "area_mean": 1001.0,
+        "smoothness_mean": 0.1184, "compactness_mean": 0.2776, "concavity_mean": 0.3001, "concave points_mean": 0.1471,
+        "symmetry_mean": 0.2419, "fractal_dimension_mean": 0.07871, "radius_se": 1.095, "texture_se": 0.9053,
+        "perimeter_se": 8.589, "area_se": 153.4, "smoothness_se": 0.006399, "compactness_se": 0.04904,
+        "concavity_se": 0.05373, "concave points_se": 0.01587, "symmetry_se": 0.03003, "fractal_dimension_se": 0.006193,
+        "radius_worst": 25.38, "texture_worst": 17.33, "perimeter_worst": 184.6, "area_worst": 2019.0,
+        "smoothness_worst": 0.1622, "compactness_worst": 0.6656, "concavity_worst": 0.7119, "concave points_worst": 0.2654,
+        "symmetry_worst": 0.4601, "fractal_dimension_worst": 0.1189
+    }
+
+    default_values_2 = {
+        "radius_mean": 13.64, "texture_mean": 16.34, "perimeter_mean": 87.21, "area_mean": 571.8,
+        "smoothness_mean": 0.07685, "compactness_mean": 0.06059, "concavity_mean": 0.01857, "concave points_mean": 0.01723,
+        "symmetry_mean": 0.1353, "fractal_dimension_mean": 0.05953, "radius_se": 0.1872, "texture_se": 0.9234,
+        "perimeter_se": 1.449, "area_se": 14.55, "smoothness_se": 0.004477, "compactness_se": 0.01177,
+        "concavity_se": 0.01079, "concave points_se": 0.007956, "symmetry_se": 0.01325, "fractal_dimension_se": 0.002551,
+        "radius_worst": 14.67, "texture_worst": 23.19, "perimeter_worst": 96.08, "area_worst": 656.7,
+        "smoothness_worst": 0.1089, "compactness_worst": 0.1582, "concavity_worst": 0.105, "concave points_worst": 0.08586,
+        "symmetry_worst": 0.2346, "fractal_dimension_worst": 0.08025
+    }
+    #scénario
+    st.write("Scénario 1 : Un médecin reçoit des données issues de l'imagerie médicale → analyse avec le Machine Learning.")
+    # Ajout du sous-titre et explication du Machine Learning
+    st.subheader("Qu'est-ce que le Machine Learning ?")
+
+    with st.expander("Le Machine Learning en quelques mots"):
+        st.write("""
+
+        🧠 Vous vous rappelez de l'exemple de l'enfant qui apprend a reconnaitre les chocolatines grace à des informations décrivant une chocolatine et du parallèle avec le Machine Learning ?
+
+        📸 Application à notre cas :
+        Nous avons donné au modèle **des informations de description de tumeur**, pour qu'il apprenne à **reconnaître si la tumeur est maligne ou benigne**.
+        """)
+
+    # 🔍 **Comme expliqué dans l'introduction, le Machine Learning (ML)** est une branche de l'intelligence artificielle.
+    # Ajout du sous-titre et explication du Machine Learning
+    st.subheader("Notre défi?")
+
+    with st.expander("Analyser les tumeurs"):
+        st.write("""
+        🔍 Notre défi était de **pouvoir Développer un modèle capable de classifier les tumeurs bénignes et malignes à partir de caractéristiques extraites d’images médicales.**.
+
+        🎯 Pour cela, nous avons proposé un Diagnostic Assisté par Machine Learning : Tumeur Bénigne ou Maligne.
+        """)
+
+    # Ajout d'un deuxième sous-titre avant l'input des caractéristiques tumorales
+    st.subheader("Outil de prédiction")
+    # st.write("Veuillez entrer les mesures de la tumeur pour obtenir une prédiction.")
+    st.write("Après avoir entré les paramètres, notre modèle effectue l’analyse et fournit une prédiction.")
+
+ # ------------------- PRÉDICTION 1 -------------------
+    st.subheader("🔬 Prédiction 1")
+    with st.form(key="prediction_form_1"):
+        columns = st.columns(5)
+        feature_values_1 = {}
+
+        for i, feature in enumerate(default_values_1.keys()):
+            with columns[i % 5]:
+                feature_values_1[feature] = st.number_input(
+                    feature, min_value=0.0, format="%.4f", value=default_values_1[feature]
+                )
+
+        submit_button_1 = st.form_submit_button(label="Lancer la Prédiction 1")
+
+
+    if submit_button_1:
+        input_data_1 = pd.DataFrame([list(feature_values_1.values())], columns=default_values_1.keys())
+
+        if input_data_1.isnull().values.any():
+            st.error("⚠️ Certaines valeurs sont vides ou incorrectes ! Veuillez remplir tous les champs.")
+        else:
+            input_data_json = {"features": input_data_1.values.tolist()[0]}
+            response = requests.post(ML_API_URL, json=input_data_json)
+
+            if response.status_code == 200:
+                prediction_1 = response.json()["diagnostic"]
+            else:
+                prediction_1 = "Erreur lors de la prédiction."
+
+            # **Mise en forme du résultat**
+            if "Malin" in prediction_1:
+                diagnostic_1 = "🔴 Tumeur Maligne"
+                color_1 = "#F76C6C"  # Rouge pastel
+            else:
+                diagnostic_1 = "🔵 Tumeur Bénigne"
+                color_1 = "#A1C4FD"  # Bleu pastel
+
+            st.markdown(
+                f'<div style="background-color:{color_1}; padding:15px; border-radius:10px; text-align:center; '
+                f'font-size:16px; color:white; font-weight:bold;">'
+                f'Résultat de la prédiction 1 : {diagnostic_1}'
+                '</div>',
+                unsafe_allow_html=True
+            )
+    # ------------------- PRÉDICTION 2 -------------------
+    st.subheader("🔬 Prédiction 2")
+    with st.form(key="prediction_form_2"):
+        columns = st.columns(5)
+        feature_values_2 = {}
+
+        for i, feature in enumerate(default_values_2.keys()):
+            with columns[i % 5]:
+                feature_values_2[feature] = st.number_input(
+                    feature, min_value=0.0, format="%.4f", value=default_values_2[feature]
+                )
+
+        submit_button_2 = st.form_submit_button(label="Lancer la Prédiction 2")
+
+    if submit_button_2:
+        input_data_2 = pd.DataFrame([list(feature_values_2.values())], columns=default_values_2.keys())
+
+        if input_data_2.isnull().values.any():
+            st.error("⚠️ Certaines valeurs sont vides ou incorrectes ! Veuillez remplir tous les champs.")
+        else:
+            input_data_json = {"features": input_data_2.values.tolist()[0]}
+            response = requests.post(ML_API_URL, json=input_data_json)
+
+            if response.status_code == 200:
+                prediction_2 = response.json()["diagnostic"]
+            else:
+                prediction_2 = "Erreur lors de la prédiction."
+
+            #  **Mise en forme du résultat**
+            if "Malin" in prediction_2:
+                diagnostic_2 = "🔴 Malin (Cancer)"
+                color_2 = "#F76C6C"  # Rouge pastel
+            else:
+                diagnostic_2 = "🔵 Bénin"
+                color_2 = "#A1C4FD"  # Bleu pastel
+
+            st.markdown(
+                f'<div style="background-color:{color_2}; padding:15px; border-radius:10px; text-align:center; '
+                f'font-size:16px; color:white; font-weight:bold;">'
+                f'Résultat de la prédiction 2 : {diagnostic_2}'
+                '</div>',
+                unsafe_allow_html=True
+            )
+
+#--------------------CONFUSION MATRIX------------------
+# ------------------- AFFICHAGE DE LA MATRICE DE CONFUSION SUR LA PAGE ML -------------------
+if page == "Prédiction Tumeurs (ML)":
+    st.subheader("📊 Performance de notre Modèle de Machine Learning")
+
+    # 📌 Déterminer dynamiquement le dossier contenant `app.py`
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+    # 📌 Construire un chemin relatif et généralisable vers l'image de performance
+    cm_image_path_ml = os.path.join(BASE_DIR, "app_img", "Performance Machin Learning.png")
+
+    # 📌 Vérifier si le fichier existe avant d'afficher
+    if os.path.exists(cm_image_path_ml):
+        with st.expander("📊 Afficher l'Évaluation du Modèle"):
+            st.image(cm_image_path_ml, caption="Performance du Modèle Machine Learning", use_container_width=True)
+    else:
+        st.warning(f"⚠️ L'image de performance n'a pas été trouvée : {cm_image_path_ml}")
+
+
+    # Ajout de la phrase de précision sous la matrice de confusion
+    st.markdown(
+        """
+        🔍 **Fiabilité du modèle Machine Learning :**
+
+        ✅ **98.4 % des tumeurs malignes** sont correctement détectées.
+
+        ✅ **99.1 % des tumeurs bénignes** sont correctement détectées.
+        """
+    )
+
+
 
 # ////////////////////// Page de prédiction DEEP LEARNING /////////////////////////////
 
 if page == "Prédiction Mammographie (DL)":
     # Configuration de la page
-    st.title("Prédiction de Cancer via Deep Learning")
-
+    st.title("Prédiction de Tumeurs via Deep Learning")
+    #scénario
+    st.write("Scénario 2 : Un médecin reçoit des mammographies → utilisation du Deep Learning pour l’analyse d’images.")
 
     # ---------------------- SECTION EXPLICATION DEEP LEARNING ----------------------
     st.subheader("Qu'est-ce que le Deep Learning ?")
 
-    with st.expander("Définition du Deep Learning (Expliqué simplement)"):
+    with st.expander("Le Deep Learning en quelques mots"):
         st.write("""
-        🔍 Le Deep Learning est une branche de l'intelligence artificielle.
 
-        🧠 Imagine un enfant qui apprend à reconnaître une chocolatine en voyant de nombreuses images de chocolatines.
+        🧠 Vous vous rappelez de l'exemple de l'enfant qui apprend a reconnaitre les chocolatines grâce à des images et du parallèle avec le Deep Learning ?
 
-        De la même façon, le Deep Learning fonctionne en apprenant à partir d’un grand nombre d’exemples.
-
-        📸 Par exemple, on montre au modèle pleins d’images de chocolatines, en lui indiquant : "Ceci est une chocolatine". Grâce à ces données, il apprend progressivement à les reconnaître automatiquement.
+        📸 Application à notre cas :
+        **Nous avons montré au modèle des** milliers de mammographies, **afin qu'il apprenne à détecter la présence ou l'absence d'une tumeur**.
         """)
 
-        # Ajout d'une illustration si elle est disponible
-        choco_image_path = os.path.join("/home", "bren", "code", "ThomasLechanoine", "Breast_Cancer_Project", "app_img", "choco.jpg")
-        if os.path.exists(choco_image_path):
-            st.image(choco_image_path, caption="Illustration complémentaire", use_container_width=True)
-
-        st.write("""
-        📸 Dans notre cas, nous avons montré au modèle **des milliers de mammographies**, pour qu'il apprenne à **reconnaître si il y a une tumeur ou non**.
-
-        """)
-
-
+       # 🔍 Comme expliqué dans l'introduction, le Deep Learning est une branche de l'intelligence artificielle.
     # ---------------------- SECTION NOTRE DÉFI ----------------------
     st.subheader("Notre défi ?")
 
     with st.expander("Analyser les mammographies"):
         st.write("""
-        🔍 Notre défi était d'utiliser le **Deep Learning** pour analyser les images de **mammographies** et **détecter la présence d'une tumeur**.
+        🔍 Notre défi était de pouvoir Développer un modèle capable d'analyser les images de mammographies et détecter la présence d'une tumeur.
 
-        📊 Le modèle de Deep Learning **analyse directement les images**.""")
+        🎯 Pour cela, nous avons réalisé une interface permettant aux utilisateurs de télécharger une image de mammographie, que notre modèle analysera pour fournir une prédiction.
+        """)
 
     # ---------------------- OUTIL DE PRÉDICTION ----------------------
     st.subheader("Outil de prédiction")
-    st.write("Nous téléchargeons une image de mammographie, notre modèle l'analyse et donne un résultat.")
-
-
+    st.write("")
 
     # ---------------------- PREMIER UPLOAD D'IMAGE AVEC PRÉDICTION ----------------------
 
@@ -304,297 +556,31 @@ if page == "Prédiction Mammographie (DL)":
             except Exception as e:
                 st.error(f"Erreur lors de l’appel API : {e}")
 
-    # # 📌 Définition du chemin d'image de manière plus généralisable
-    # base_dir = os.path.dirname(os.path.abspath(__file__))  # Récupère le dossier actuel du script
-    # image_folder = os.path.join(base_dir, "app_img")  # Accès au dossier contenant les images
-    # image_path_cm_dl = os.path.join(image_folder, "matric_DL.png")  # Chemin complet
-
-    # # 📌 Vérifier si l'image existe avant d'afficher
-    # if os.path.exists(image_path_cm_dl):
-    #     with st.expander("📊 Afficher la Matrice de Confusion - Deep Learning"):
-    #         st.image(image_path_cm_dl, caption="Matrice de Confusion - Modèle Deep Learning", use_container_width=True)
-    # else:
-    #     st.warning(f"⚠️ L'image de la matrice de confusion n'a pas été trouvée : {image_path_cm_dl}")
-
-
 # Fonction pour afficher la matrice de confusion dans Streamlit
 # 📌 Ajout dans la section "Prédiction Mammographie (DL)"
+# 📌 Fonction pour afficher l'image de performance du modèle Deep Learning
 if page == "Prédiction Mammographie (DL)":
-    st.subheader("📊 Matrice de Confusion du modèle Deep Learning")
+    st.subheader("📊 Performance de notre Modèle de Deep Learning")
 
     # 📌 Déterminer dynamiquement le dossier contenant `app.py`
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-    # 📌 Construire un chemin relatif et généralisable vers l'image
-    cm_image_path = os.path.join(BASE_DIR, "app_img", "Deep_learning_CM.jpg")
+    # 📌 Construire un chemin relatif et généralisable vers l'image de performance
+    cm_image_path = os.path.join(BASE_DIR, "app_img", "Performance Deep Learning.png")
 
     # 📌 Vérifier si le fichier existe avant d'afficher
     if os.path.exists(cm_image_path):
-        with st.expander("📊 Afficher la Matrice de Confusion"):
-            st.image(cm_image_path, caption="Matrice de Confusion - Modèle Deep Learning", width= 100 ,use_container_width=True)
+        with st.expander("📊 Afficher l'Évaluation du Modèle"):
+            st.image(cm_image_path, caption="Performance du Modèle Deep Learning", use_container_width=True)
     else:
-        st.warning(f"⚠️ L'image de la matrice de confusion n'a pas été trouvée : {cm_image_path}")
+        st.warning(f"⚠️ L'image de performance n'a pas été trouvée : {cm_image_path}")
 
+    st.markdown(
+        """
+        🔍 **Fiabilité du modèle Deep Learning :**
 
-# ///////////Page de prédiction via Machine Learning////////////
-#----------------------------------------------
-st.markdown("""
-    <style>
-        /* Fond général en bleu pastel */
-        .stApp {
-            background-color: #E3F2FD !important;
-        }
+        ✅ **98.0 % des patientes avec tumeur** sont correctement détectées.
 
-        /* Modification du header (bande supérieure) */
-        header, .st-emotion-cache-18ni7ap {
-            background-color: #E3F2FD !important;
-        }
-
-        /* Titres en couleur foncée pour contraste */
-        h1, h2, h3, h4, h5, h6, p, label {
-            color: #1A1A1A !important;
-            font-weight: bold !important;
-        }
-
-        /* Bouton principal (st.button et st.form_submit_button) */
-        div.stButton > button, div[data-testid="stFormSubmitButton"] > button {
-            background-color: #FFA69E !important; /* Rouge saumon pastel */
-            color: #FFFFFF !important; /* Texte blanc */
-            border-radius: 12px !important;
-            font-size: 18px !important;
-            font-weight: bold !important;
-            padding: 12px 24px !important;
-            border: none !important; /* Suppression des bordures */
-            box-shadow: none !important; /* Suppression de l'ombre */
-            transition: all 0.3s ease-in-out !important;
-        }
-
-        /* Effet hover sur les boutons */
-        div.stButton > button:hover, div[data-testid="stFormSubmitButton"] > button:hover {
-            background-color: #FF6B6B !important; /* Rouge plus foncé */
-            box-shadow: none !important; /* Suppression de l’ombre */
-            transform: scale(1.05) !important; /* Effet léger d'agrandissement */
-        }
-
-        /* Style des inputs */
-        .stNumberInput>div>div {
-            width: 140px !important;
-            border-radius: 8px !important;
-            border: 2px solid #A1C4FD !important; /* Bleu pastel */
-            background-color: #FFFFFF !important;
-            color: #1A1A1A !important;
-            padding: 5px !important;
-        }
-
-        /* Texte des inputs */
-        div[data-testid="stNumberInput"] input {
-            font-size: 14px !important;
-            padding: 10px !important;
-            text-align: center !important;
-            background-color: #FFFFFF !important;
-            color: #1A1A1A !important;
-            border: none !important;
-        }
-
-        /* Style du sidebar */
-        .stSidebar {
-            background-color: #B2D3FF !important;
-        }
-
-        /* Style des résultats de prédiction */
-        .stSuccess {
-            border-radius: 10px !important;
-            padding: 10px !important;
-            text-align: center !important;
-            font-weight: bold !important;
-            color: white !important;
-        }
-    </style>
-""", unsafe_allow_html=True)
-
-
-# ------------------- Machine Learning Prediction -------------------
-# URL de l'API pour la prédiction ML
-ML_API_URL = ML_API_URL  # !!! Remplacer cette URL si l'API est hébergée en ligne #<------------------------------------------------
-
-
-# ------------------- Machine Learning Prediction -------------------
-if page == "Prédiction Cancer (ML)":
-    st.title("Prédiction de Cancer via Machine Learning")
-
-
-    #  Valeurs par défaut (corrigées)
-    default_values_1 = {
-        "radius_mean": 17.99, "texture_mean": 10.38, "perimeter_mean": 122.8, "area_mean": 1001.0,
-        "smoothness_mean": 0.1184, "compactness_mean": 0.2776, "concavity_mean": 0.3001, "concave points_mean": 0.1471,
-        "symmetry_mean": 0.2419, "fractal_dimension_mean": 0.07871, "radius_se": 1.095, "texture_se": 0.9053,
-        "perimeter_se": 8.589, "area_se": 153.4, "smoothness_se": 0.006399, "compactness_se": 0.04904,
-        "concavity_se": 0.05373, "concave points_se": 0.01587, "symmetry_se": 0.03003, "fractal_dimension_se": 0.006193,
-        "radius_worst": 25.38, "texture_worst": 17.33, "perimeter_worst": 184.6, "area_worst": 2019.0,
-        "smoothness_worst": 0.1622, "compactness_worst": 0.6656, "concavity_worst": 0.7119, "concave points_worst": 0.2654,
-        "symmetry_worst": 0.4601, "fractal_dimension_worst": 0.1189
-    }
-
-    default_values_2 = {
-        "radius_mean": 13.64, "texture_mean": 16.34, "perimeter_mean": 87.21, "area_mean": 571.8,
-        "smoothness_mean": 0.07685, "compactness_mean": 0.06059, "concavity_mean": 0.01857, "concave points_mean": 0.01723,
-        "symmetry_mean": 0.1353, "fractal_dimension_mean": 0.05953, "radius_se": 0.1872, "texture_se": 0.9234,
-        "perimeter_se": 1.449, "area_se": 14.55, "smoothness_se": 0.004477, "compactness_se": 0.01177,
-        "concavity_se": 0.01079, "concave points_se": 0.007956, "symmetry_se": 0.01325, "fractal_dimension_se": 0.002551,
-        "radius_worst": 14.67, "texture_worst": 23.19, "perimeter_worst": 96.08, "area_worst": 656.7,
-        "smoothness_worst": 0.1089, "compactness_worst": 0.1582, "concavity_worst": 0.105, "concave points_worst": 0.08586,
-        "symmetry_worst": 0.2346, "fractal_dimension_worst": 0.08025
-    }
-
-    # ------------------- PRÉDICTION 1 -------------------
-
-
-    # Ajout du sous-titre et explication du Machine Learning
-    st.subheader("Qu'est-ce que le Machine Learning ?")
-
-    with st.expander("Définition du Machine Learning (Expliqué simplement)"):
-        st.write("""
-        🔍 **Le Machine Learning (ML)** est une branche de l'intelligence artificielle.
-
-        🎯 C'est une technique qui permet à l'ordinateur d'apprendre à partir des données, de découvrir des patterns et de faire des prédictions.
-        """)
-
-    # Ajout du sous-titre et explication du Machine Learning
-    st.subheader("Notre défi?")
-
-    with st.expander("Analyser les tumeurs"):
-        st.write("""
-        🔍 Notre défi était de **pouvoir classer les tumeurs malignes et bénignes** basé sur les informations de caractéristiques de tumeurs issues d'une **analyse d'images médicales**.
-
-        Pour cela, nous avons utilisé le machine learning.
-        """)
-
-    # Ajout d'un deuxième sous-titre avant l'input des caractéristiques tumorales
-    st.subheader("Outil de prédiction")
-
-
-    # st.write("Veuillez entrer les mesures de la tumeur pour obtenir une prédiction.")
-    st.write("Nous entrons les paramètres, notre modèle démarre et donne une prédiction.")
-
-    st.subheader("Prédiction 1")
-    with st.form(key="prediction_form_1"):
-        columns = st.columns(5)
-        feature_values_1 = {}
-
-        for i, feature in enumerate(default_values_1.keys()):
-            with columns[i % 5]:
-                feature_values_1[feature] = st.number_input(
-                    feature, min_value=0.0, format="%.4f", value=default_values_1[feature]
-                )
-
-        submit_button_1 = st.form_submit_button(label="Lancer la Prédiction 1")
-
-
-    if submit_button_1:
-        input_data_1 = pd.DataFrame([list(feature_values_1.values())], columns=default_values_1.keys())
-
-        if input_data_1.isnull().values.any():
-            st.error("⚠️ Certaines valeurs sont vides ou incorrectes ! Veuillez remplir tous les champs.")
-        else:
-            input_data_json = {"features": input_data_1.values.tolist()[0]}
-            response = requests.post(ML_API_URL, json=input_data_json)
-
-            if response.status_code == 200:
-                prediction_1 = response.json()["diagnostic"]
-            else:
-                prediction_1 = "Erreur lors de la prédiction."
-
-            # **Mise en forme du résultat**
-            if "Malin" in prediction_1:
-                diagnostic_1 = "🔴 Tumeur Maligne"
-                color_1 = "#F76C6C"  # Rouge pastel
-            else:
-                diagnostic_1 = "🔵 Tumeur Bénigne"
-                color_1 = "#A1C4FD"  # Bleu pastel
-
-            st.markdown(
-                f'<div style="background-color:{color_1}; padding:15px; border-radius:10px; text-align:center; '
-                f'font-size:16px; color:white; font-weight:bold;">'
-                f'Résultat de la prédiction 1 : {diagnostic_1}'
-                '</div>',
-                unsafe_allow_html=True
-            )
-    # ------------------- PRÉDICTION 2 -------------------
-    st.subheader("Prédiction 2")
-    with st.form(key="prediction_form_2"):
-        columns = st.columns(5)
-        feature_values_2 = {}
-
-        for i, feature in enumerate(default_values_2.keys()):
-            with columns[i % 5]:
-                feature_values_2[feature] = st.number_input(
-                    feature, min_value=0.0, format="%.4f", value=default_values_2[feature]
-                )
-
-        submit_button_2 = st.form_submit_button(label="Lancer la Prédiction 2")
-
-    if submit_button_2:
-        input_data_2 = pd.DataFrame([list(feature_values_2.values())], columns=default_values_2.keys())
-
-        if input_data_2.isnull().values.any():
-            st.error("⚠️ Certaines valeurs sont vides ou incorrectes ! Veuillez remplir tous les champs.")
-        else:
-            input_data_json = {"features": input_data_2.values.tolist()[0]}
-            response = requests.post(ML_API_URL, json=input_data_json)
-
-            if response.status_code == 200:
-                prediction_2 = response.json()["diagnostic"]
-            else:
-                prediction_2 = "Erreur lors de la prédiction."
-
-            #  **Mise en forme du résultat**
-            if "Malin" in prediction_2:
-                diagnostic_2 = "🔴 Malin (Cancer)"
-                color_2 = "#F76C6C"  # Rouge pastel
-            else:
-                diagnostic_2 = "🔵 Bénin"
-                color_2 = "#A1C4FD"  # Bleu pastel
-
-            st.markdown(
-                f'<div style="background-color:{color_2}; padding:15px; border-radius:10px; text-align:center; '
-                f'font-size:16px; color:white; font-weight:bold;">'
-                f'Résultat de la prédiction 2 : {diagnostic_2}'
-                '</div>',
-                unsafe_allow_html=True
-            )
-
-#--------------------CONFUSION MATRIX------------------
-# ------------------- AFFICHAGE DE LA MATRICE DE CONFUSION SUR LA PAGE ML -------------------
-if page == "Prédiction Cancer (ML)":
-    st.subheader("📊 Précision de notre Modèle de Machine Learning")
-
-    with st.expander("🔍 Afficher la Matrice de Confusion"):
-        st.write("Cette matrice permet d'évaluer les performances du modèle en comparant les valeurs réelles et prédites.")
-
-        # Calcul des prédictions sur l'ensemble de test
-        y_pred = model.predict(scaler.transform(X_test))
-        cm = confusion_matrix(y_test, y_pred)
-
-        # Affichage de la matrice de confusion
-        fig, ax = plt.subplots(figsize=(4, 3))
-        sns.heatmap(cm, annot=True, fmt='g', cmap="Blues", cbar=True, linewidths=1, linecolor='white', ax=ax)
-        ax.set_xlabel("Valeurs Prédites", fontsize=12, color='#333333')
-        ax.set_ylabel("Valeurs Réelles", fontsize=12, color='#333333')
-        ax.set_title("Matrice de Confusion", fontsize=14, color='#333333')
-
-        plt.tight_layout()
-        st.pyplot(fig)
-
-        # Ajout de la phrase de précision sous la matrice de confusion
-        st.markdown(
-            """
-            **🔍 Notre modèle est capable d'**identifier correctement :
-
-            🔹 **98 % des patientes** qui ont réellement une tumeur **maligne**.
-
-            🔹 **99 % des personnes** qui ont une tumeur **bénigne**.
-            """
-        )
-
-
-#-------------------
+        ✅ **97.9 % des patientes sans tumeur** sont bien identifiées.
+        """
+    )
